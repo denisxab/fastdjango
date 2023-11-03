@@ -17,4 +17,9 @@ class UserSchema(CU_UserSchema):
 class PersonSchema(BaseModel):
     id: int
     fio: str
+    user_id: UserSchema
+
+
+class CU_PersonSchema(BaseModel):
+    fio: str
     user_id: int

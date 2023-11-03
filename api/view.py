@@ -1,16 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
-from api.schema import CU_UserSchema, PersonSchema, UserSchema
+from api.schema import CU_PersonSchema, CU_UserSchema, PersonSchema, UserSchema
 from fhelp.database import get_db
-from fhelp.viewset import (
-    FBaseRouter,
-    view_create,
-    view_delete,
-    view_list,
-    view_retrieve,
-    view_update,
-)
+from fhelp.viewset import FBaseRouter, view_retrieve
 
 from .models import Person, User
 
@@ -22,10 +15,9 @@ class UsersRouter(FBaseRouter, APIRouter):
     url = "users"
     response_model = UserSchema
     schema_body = CU_UserSchema
-    filters = (
-        "snils",
-        "level",
-    )
+    filter_column = ("snils", "level")
+    size_page = 2
+    order_by = ("id",)
 
     # def __init__(self):
     #     super().__init__()
@@ -64,7 +56,30 @@ class PersonRouter(FBaseRouter, APIRouter):
     model = Person
     url = "person"
     response_model = PersonSchema
-    schema_body = PersonSchema
+    schema_body = CU_PersonSchema
+    filter_column = ("fio", "user_id")
+    order_by = ("id",)
+
+    def list_view(self, request: Request, db: Session = Depends(get_db)):
+        rows = super().list_view(request, db)
+        result = []
+
+        for row in rows:
+            user = view_retrieve(db, User, row.user_id)
+            result.append(
+                {
+                    "id": row.id,
+                    "fio": row.fio,
+                    "user_id": {
+                        "id": row.user_id,
+                        "username": user.username,
+                        "email_user": user.email_user,
+                        "snils": user.snils,
+                        "level": user.level,
+                    },
+                }
+            )
+        return result
 
 
 router_persons.include_router(UsersRouter())

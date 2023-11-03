@@ -43,17 +43,17 @@ def dictfetchall(cursor) -> list[dict[str, Any]]:
 
 
 def sql_read(sql_query: str):
-    def _iner(cur):
+    def _inner(cur):
         cur.execute(sql_query)
         return dictfetchall(cur)
 
-    return connect_db(_iner)
+    return connect_db(_inner)
 
 
 def sql_write(sql_query: str):
-    def _iner(cur):
+    def _inner(cur):
         cur.execute(sql_query)
         cur.connection.commit()
         return cur.rowcount
 
-    return connect_db(_iner)
+    return connect_db(_inner)
