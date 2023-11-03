@@ -1,1 +1,1 @@
-from fhelp.invoke_tasks import *
+from fhelp.command import *  # noqa F401
