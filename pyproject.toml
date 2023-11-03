@@ -11,11 +11,7 @@ fastapi = "^0.104.1"
 alembic = "^1.12.1"
 sqlalchemy = "^2.0.23"
 psycopg2-binary = "^2.9.9"
-fastapi-amis-admin = "^0.6.7"
 uvicorn = "^0.23.2"
-pydantic-settings = "^2.0.3"
-asyncpg = "^0.28.0"
-pydantic = "^2.4.2"
 
 
 [build-system]

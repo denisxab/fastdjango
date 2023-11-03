@@ -1,16 +1,15 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+from env_app import DATABASE_URL
 
 # Эти две строки подключаются к вашей базе данных
 from main import app  # Импортируем FastAPI app
 from models import Base  # Предполагаем, что у вас есть модели
 
 # Инициализация базы данных
-DATABASE_URL = "postgresql://username:password@db/dbname"
 
 target_metadata = Base.metadata
 
