@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from env_app import DATABASE_URL
+from settings import DATABASE_URL
 
 # Эти две строки подключаются к вашей базе данных
 from main import app  # Импортируем FastAPI app

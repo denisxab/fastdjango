@@ -9,8 +9,6 @@ WORKDIR /app
 # Copy the local requirements file to the container at /app
 COPY poetry.lock pyproject.toml /app/
 
-
-
 # Install dependencies
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \

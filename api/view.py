@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from api.query_db import get_all_users, get_user_by_id
 from utlis import get_db
-
-from .query_db import get_all_users, get_user_by_id
 
 router_persons = APIRouter()
 
@@ -16,6 +15,8 @@ def some_endpoint():
 @router_persons.get("/users/")
 def read_user_all(db: Session = Depends(get_db)):
     users = get_all_users(db)
+    if users is None:
+        raise HTTPException(status_code=404, detail="User not found")
     return users
 
 

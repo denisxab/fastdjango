@@ -8,4 +8,4 @@
 
 Откатить миграцию на один шаг назад: `alembic downgrade -1`
 
-Запустить проект: `uvicorn main:app --reload --host 0.0.0.0 --port 8000`
+Запустить проект: `uvicorn main:app --reload --host 0.0.0.0 --port 8000` или `invoke rundev`
