@@ -1,35 +1,10 @@
 {
-  "model": "users",
-  "column_name": [
-    "id",
-    "username",
-    "email_user",
-    "snils"
-  ],
-  "data": [
-    [
-      1,
-      "2",
-      "3",
-      "4"
-    ],
-    [
-      2,
-      "3",
-      "32",
-      "4"
-    ],
-    [
-      3,
-      "4",
-      "3s",
-      "4"
-    ],
-    [
-      4,
-      "5",
-      "3d",
-      "4"
+    "model": "users",
+    "column_name": ["id", "username", "email_user", "snils"],
+    "data": [
+        [1, "Ivan", "Ivan@google.com", "4123123213"],
+        [2, "Petro", "Petro@google.com", "1231121245"],
+        [3, "Gongo", "Gongo@google.com", "453514"],
+        [4, "Dima", "Dima@google.com", "89990"]
     ]
-  ]
 }
