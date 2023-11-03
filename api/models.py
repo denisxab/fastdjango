@@ -10,6 +10,7 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email_user = Column(String, unique=True, index=True)
     snils = Column(String)
+    level = Column(Integer)
 
 
 class Person(Base):

@@ -1,20 +1,20 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
-class UserSchema(BaseModel):
+class CU_UserSchema(BaseModel):
+    username: Optional[str]
+    email_user: Optional[str]
+    snils: Optional[str]
+    level: Optional[int]
+
+
+class UserSchema(CU_UserSchema):
     id: int
-    username: str
-    email_user: str
-    snils: str
 
 
 class PersonSchema(BaseModel):
     id: int
     fio: str
     user_id: int
-
-
-class CU_UserSchema(BaseModel):
-    username: str
-    email_user: str
-    snils: str

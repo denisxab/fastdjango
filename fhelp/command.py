@@ -20,6 +20,18 @@ def rundev(ctx):
 
 
 @task
+def makemigrations(ctx):
+    """Создать миграцию"""
+    ctx.run("alembic revision --autogenerate")
+
+
+@task
+def migrate(ctx):
+    """Применить все миграции"""
+    ctx.run("alembic upgrade head")
+
+
+@task
 def check(ctx):
     """Проверка проекта"""
 

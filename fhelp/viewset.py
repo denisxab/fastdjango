@@ -1,9 +1,10 @@
 """
-Автоматизация для построение Views 
+Автоматизация для построение Views
 """
+from copy import deepcopy
 from typing import Any, Optional
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -68,8 +69,8 @@ class FBaseRouter:
         # Класс модели
         getattr(self, "model")
         # Путь по которому подключить
-        getattr(self, "name_path")
-        # Схема овтета для GET, POST
+        getattr(self, "url")
+        # Схема ответа для GET, POST
         getattr(self, "response_model")
         # Схема для POST и PUT
         getattr(self, "schema_body")
@@ -77,33 +78,49 @@ class FBaseRouter:
         self.add_api_routes()
 
     def add_api_routes(self):
-        # Настрйока маршутизатора
-        self.get(f"/{self.name_path}/", response_model=self.response_model)(
+        # Динамически указываем тип для Body
+        tmp_create_model = lambda data: self.create_model(data)  # noqa E731
+        tmp_create_model.__annotations__ = deepcopy(self.create_model.__annotations__)
+        tmp_create_model.__annotations__["data"] = self.schema_body
+        tmp_update_model = lambda pk, data: self.update_model(pk, data)  # noqa E731
+        tmp_update_model.__annotations__ = deepcopy(self.update_model.__annotations__)
+        tmp_update_model.__annotations__["data"] = self.schema_body
+
+        # Добавляем фильтры
+        self.filters = getattr(self, "filters", None)
+
+        # Настройка маршрутизатора
+        self.get(f"/{self.url}/", response_model=list[self.response_model])(
             self.list_model
         )
-        self.get(f"/{self.name_path}" + "/{pk}", response_model=self.response_model)(
+        self.get(f"/{self.url}" + "/{pk}", response_model=self.response_model)(
             self.retrieve_model
         )
         self.post(
-            f"/{self.name_path}/",
+            f"/{self.url}/",
             response_model=self.response_model,
-        )(self.create_model)
-        self.delete(f"/{self.name_path}" + "/{pk}")(self.delete_model)
-        self.put(f"/{self.name_path}" + "/{pk}")(self.update_model)
+        )(tmp_create_model)
+        self.delete(f"/{self.url}" + "/{pk}")(self.delete_model)
+        self.put(f"/{self.url}" + "/{pk}")(tmp_update_model)
 
-    def list_model(self, db: Session = Depends(get_db)):
-        return view_list(db, self.model)
+    def list_model(self, request: Request, db: Session = Depends(get_db)):
+        filters = None
+        if self.filters:
+            query_params = request.query_params._dict
+            filters = {f: query_params.get(f) for f in self.filters}
+
+        return view_list(db, self.model, filters)
 
     def retrieve_model(self, pk: int, db: Session = Depends(get_db)):
         return view_retrieve(db, self.model, pk)
 
-    def create_model(self, data: BaseModel, db: Session = Depends(get_db)):
-        return view_create(db, self.model, data)
+    def create_model(self, data: BaseModel, db: Depends = Depends(get_db)):
+        db_connect = db.dependency().__next__()
+        return view_create(db_connect, self.model, data)
 
     def delete_model(self, pk: int, db: Session = Depends(get_db)):
         return view_delete(db, self.model, pk)
 
-    def update_model(
-        self, user_id: int, data: BaseModel, db: Session = Depends(get_db)
-    ):
-        return view_update(db, self.model, user_id, data)
+    def update_model(self, pk: int, data: BaseModel, db: Depends = Depends(get_db)):
+        db_connect = db.dependency().__next__()
+        return view_update(db_connect, self.model, pk, data)

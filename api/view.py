@@ -19,9 +19,13 @@ router_persons = APIRouter()
 
 class UsersRouter(FBaseRouter, APIRouter):
     model = User
-    name_path = "users"
+    url = "users"
     response_model = UserSchema
     schema_body = CU_UserSchema
+    filters = (
+        "snils",
+        "level",
+    )
 
     # def __init__(self):
     #     super().__init__()
@@ -58,7 +62,7 @@ class UsersRouter(FBaseRouter, APIRouter):
 
 class PersonRouter(FBaseRouter, APIRouter):
     model = Person
-    name_path = "person"
+    url = "person"
     response_model = PersonSchema
     schema_body = PersonSchema
 
