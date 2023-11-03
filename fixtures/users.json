@@ -1,0 +1,29 @@
+{
+    "model": "users",
+    "rows": [
+        {
+            "id": 1,
+            "username": "2",
+            "email_user": "3",
+            "snils": "4"
+        },
+        {
+            "id": 2,
+            "username": "3",
+            "email_user": "32",
+            "snils": "4"
+        },
+        {
+            "id": 3,
+            "username": "4",
+            "email_user": "3s",
+            "snils": "4"
+        },
+        {
+            "id": 4,
+            "username": "5",
+            "email_user": "3d",
+            "snils": "4"
+        }
+    ]
+}

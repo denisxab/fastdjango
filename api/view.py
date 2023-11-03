@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from api.query_db import get_all_users, get_user_by_id
-from utlis import get_db
+from fhelp.database import get_db
 
 router_persons = APIRouter()
 

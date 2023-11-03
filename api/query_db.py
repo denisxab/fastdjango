@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from models import User
+from .models_api import User
 
 
 def get_all_users(db: Session):
