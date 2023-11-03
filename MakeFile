@@ -1,0 +1,3 @@
+
+rundev:
+    uvicorn main:app --reload

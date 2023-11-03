@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+    db:
+        image: postgres
+        environment:
+            POSTGRES_DB: dbname
+            POSTGRES_USER: username
+            POSTGRES_PASSWORD: password
+        ports:
+            - "5432:5432"
+
+    web:
+        build: .
+        volumes:
+            - .:/app
+        ports:
+            - "8000:8000"
+        depends_on:
+            - db
+            - redis
+
+    redis:
+        image: redis
+        ports:
+            - "8082:6379"
