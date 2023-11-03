@@ -8,6 +8,12 @@ class UserSchema(BaseModel):
     snils: str
 
 
+class PersonSchema(BaseModel):
+    id: int
+    fio: str
+    user_id: int
+
+
 class CU_UserSchema(BaseModel):
     username: str
     email_user: str

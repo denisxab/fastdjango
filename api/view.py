@@ -1,62 +1,67 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from api.query_db import get_all_users, get_user_by_id
-from api.schema import CU_UserSchema, UserSchema
+from api.schema import CU_UserSchema, PersonSchema, UserSchema
 from fhelp.database import get_db
+from fhelp.viewset import (
+    FBaseRouter,
+    view_create,
+    view_delete,
+    view_list,
+    view_retrieve,
+    view_update,
+)
 
-from .models import User
+from .models import Person, User
 
 router_persons = APIRouter()
 
 
-@router_persons.get("/persons/")
-def some_endpoint():
-    return {"message": get_all_users()}
+class UsersRouter(FBaseRouter, APIRouter):
+    model = User
+    name_path = "users"
+    response_model = UserSchema
+    schema_body = CU_UserSchema
+
+    # def __init__(self):
+    #     super().__init__()
+    #     self.add_api_routes()
+
+    # def add_api_routes(self):
+    #     self.get("/users/")(self.list_user)
+    #     self.get("/users/{user_id}")(self.retrieve_user)
+    #     self.post("/users/")(self.create_user)
+    #     self.delete("/users/{user_id}")(self.delete_user)
+    #     self.put("/users/{user_id}")(self.update_user)
+
+    # def list_user(
+    #     self, snils: str = None, db: Session = Depends(get_db)
+    # ) -> list[UserSchema]:
+    #     return view_list(db, User, filters={"snils": snils})
+
+    # def retrieve_user(self, user_id: int, db: Session = Depends(get_db)) -> UserSchema:
+    #     return view_retrieve(db, User, user_id)
+
+    # def create_user(
+    #     self, user_data: CU_UserSchema, db: Session = Depends(get_db)
+    # ) -> UserSchema:
+    #     return view_create(db, User, user_data)
+
+    # def delete_user(self, user_id: int, db: Session = Depends(get_db)):
+    #     return view_delete(db, User, user_id)
+
+    # def update_user(
+    #     self, user_id: int, user_data: CU_UserSchema, db: Session = Depends(get_db)
+    # ):
+    #     return view_update(db, User, user_id, user_data)
 
 
-@router_persons.get("/users/")
-def read_user_all(snils: str = None, db: Session = Depends(get_db)):
-    users = get_all_users(db, snils)
-    if users is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return users
+class PersonRouter(FBaseRouter, APIRouter):
+    model = Person
+    name_path = "person"
+    response_model = PersonSchema
+    schema_body = PersonSchema
 
 
-@router_persons.get("/users/{user_id}", response_model=UserSchema)
-def read_user(user_id: int, db: Session = Depends(get_db)):
-    user = get_user_by_id(db, user_id)
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
-
-@router_persons.post("/users/", response_model=UserSchema)
-def create_user(user_data: CU_UserSchema, db: Session = Depends(get_db)):
-    new_user = User(**user_data.dict())
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
-
-
-@router_persons.delete("/users/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    user = get_user_by_id(db, user_id)
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    db.delete(user)
-    db.commit()
-    return {"message": "User deleted successfully"}
-
-
-@router_persons.put("/users/{user_id}", response_model=UserSchema)
-def update_user(user_id: int, user_data: CU_UserSchema, db: Session = Depends(get_db)):
-    user = get_user_by_id(db, user_id)
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    for field, value in user_data.dict().items():
-        setattr(user, field, value)
-    db.commit()
-    db.refresh(user)
-    return user
+router_persons.include_router(UsersRouter())
+router_persons.include_router(PersonRouter())
