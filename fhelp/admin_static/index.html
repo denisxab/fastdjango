@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простая админ панель</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="models-list">
+            <h2>Список моделей</h2>
+            <ul id="models"></ul>
+        </div>
+        <div class="records-list">
+            <h2 id="recordsHeader">Список записей</h2>
+            <table id="recordsTable"></table>
+            <div class="no-data" id="noDataMessage"></div>
+            <button id="backButton" class="back-button" style="display:none">Назад к списку записей</button>
+            <button id="deleteRowButton" class="delete-row-button" style="display:none">Удалить запись</button>
+        </div>
+    </div>
+    <script src="main.js"></script>
+</body>
+
+</html>

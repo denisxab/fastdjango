@@ -26,6 +26,11 @@ async def view_retrieve(session: AsyncSession, model: DeclarativeMeta, pk):
         raise HTTPException(status_code=404, detail="User not found")
     return row
 
+def sync_view_retrieve(session: Session, model: DeclarativeMeta, pk):
+    """Получить запись по PK"""
+    name_pk = model.__table__.primary_key.columns.values()[0].name
+    return session.query(model).filter(getattr(model, name_pk) == pk).first()
+
 
 async def view_list(
     session: AsyncSession,
@@ -82,7 +87,7 @@ def view_create(session: Session, model: DeclarativeMeta, data: BaseModel):
 
 def view_delete(session: Session, model: DeclarativeMeta, pk):
     """Удалить запись по PK"""
-    row = view_retrieve(session, model, pk)
+    row = sync_view_retrieve(session, model, pk)
     if row is None:
         raise HTTPException(status_code=404, detail="User not found")
     session.delete(row)
@@ -93,7 +98,7 @@ def view_delete(session: Session, model: DeclarativeMeta, pk):
 def view_update(session: Session, model: DeclarativeMeta, pk, data: BaseModel):
     """Обновить запись по PK"""
 
-    row = view_retrieve(session, model, pk)
+    row = sync_view_retrieve(session, model, pk)
     if row is None:
         raise HTTPException(status_code=404, detail="User not found")
     for field, value in data.dict().items():
@@ -103,7 +108,7 @@ def view_update(session: Session, model: DeclarativeMeta, pk, data: BaseModel):
     return row
 
 
-class FBaseRouter:
+class FViews:
     def __init__(self):
         super().__init__()
 
@@ -256,7 +261,7 @@ class FBaseRouter:
         return view_update(_session, self.model, pk, data)
 
 
-class FBaseRouterJwt(FBaseRouter):
+class FViewsJwt(FViews):
     async def list_view(
         self,
         request: Request,

@@ -1,5 +1,3 @@
--   Простая админ панель
-
 # Использование
 
 ## Запустить проект
@@ -36,7 +34,7 @@ invoke db.loaddata ИмяТаблицы.json
 invoke db.flushtable users
 ```
 
-## Проверки
+## Проверки проекта
 
 Запустить проверки:
 
@@ -45,6 +43,60 @@ invoke db.flushtable users
 ```bash
 invoke server.check
 ```
+
+## Аналог ViewSet
+
+Есть аналог ViewSet из Django:
+
+```python
+from fhelp.viewset import FViews
+from api.schema import CU_UserSchema, UserSchema
+from .models import User
+
+router_persons = APIRouter()
+
+class UsersRouter(FViews, APIRouter):
+    model = User
+    url = "users"
+    response_model = UserSchema
+    schema_body = CU_UserSchema
+    filter_column_eq = ("level",)
+    filter_column_like = ("snils",)
+    page_size = 2
+    order_by = ("id",)
+
+router_persons.include_router(UsersRouter())
+```
+
+## Админ панель
+
+Подключить админ панель:
+
+```python
+from fastapi import FastAPI
+from fhelp.fadmin import add_model_in_admin, router_admin
+from api.models import Person, User
+
+app = FastAPI()
+
+# Добавляем миддлвару для обработки CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Можете заменить "*" на домен вашего фронтенда
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Подключить модели в админ панель:
+
+add_model_in_admin(model=User)
+add_model_in_admin(model=Person)
+
+app.include_router(router_admin)
+```
+
+Теперь можно пользоваться API админ панели:
 
 ## Авторизация по JWT
 
@@ -123,6 +175,10 @@ HTTP 403
 }
 ```
 
+### 4.1 Авторизация для Views
+
+Используйте класс `FViewsJwt` вместо `FViews`
+
 # Оформление проекта
 
 -   `ИмяПриложения`
@@ -141,9 +197,14 @@ HTTP 403
 
 # Миграции
 
+## Использовать готовый CLI
+
+-   `invoke db.makemigrations` - Создать миграцию
+-   `invoke db.migrate` - Применить миграцию
+
 ## Alembic
 
-### CLI команды
+### CLI Alembic
 
 Инициализация Alembic: `alembic init alembic`
 

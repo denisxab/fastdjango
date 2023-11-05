@@ -63,7 +63,3 @@ async def login_jwt(username: str, password: str):
 
     return {"access_token": access_token, "token_type": "Authorization Bearer"}
 
-
-# @app.get("/protected-route")
-# async def protected_route(current_user: dict = Depends(get_current_user)):
-#     return current_user

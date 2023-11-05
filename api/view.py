@@ -1,20 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 from api.schema import CU_PersonSchema, CU_UserSchema, PersonSchema, UserSchema
-from fhelp.database import get_session
 from fhelp.database_async import async_get_session
 from fhelp.fjwt import get_current_user
-from fhelp.viewset import FBaseRouter, FBaseRouterJwt, view_retrieve
+from fhelp.viewset import FViews, FViewsJwt, view_retrieve
 
 from .models import Person, User
 
 router_persons = APIRouter()
 
 
-class UsersRouter(FBaseRouterJwt, APIRouter):
+class UsersRouter(FViewsJwt, APIRouter):
     model = User
     url = "users"
     response_model = UserSchema
@@ -57,7 +55,7 @@ class UsersRouter(FBaseRouterJwt, APIRouter):
     #     return view_update(db, User, user_id, user_data)
 
 
-class PersonRouter(FBaseRouter, APIRouter):
+class PersonRouter(FViews, APIRouter):
     model = Person
     url = "person"
     response_model = PersonSchema

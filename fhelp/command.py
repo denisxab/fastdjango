@@ -75,12 +75,18 @@ def loaddata(ctx, file_name: str):
 
     res = 0
     for row in json_data["data"]:
-        sql_query = "INSERT INTO {name} ({keys}) VALUES ({values});".format(
-            name=json_data["model"],
-            keys=", ".join(json_data["column_name"]),
-            values=", ".join([f"'{v}'" if isinstance(v, str) else str(v) for v in row]),
-        )
-        res += sql_write(sql_query)
+        try:
+            sql_query = "INSERT INTO {name} ({keys}) VALUES ({values});".format(
+                name=json_data["model"],
+                keys=", ".join(json_data["column_name"]),
+                values=", ".join(
+                    [f"'{v}'" if isinstance(v, str) else str(v) for v in row]
+                ),
+            )
+
+            res += sql_write(sql_query)
+        except psycopg2.errors.UniqueViolation as e:
+            print(e)
 
     print("CREATE ROWS: ", res)
 

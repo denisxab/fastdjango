@@ -7,15 +7,15 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.104.1"
-alembic = "^1.12.1"
-sqlalchemy = "^2.0.23"
-psycopg2-binary = "^2.9.9"
-uvicorn = "^0.23.2"
-invoke = "^2.2.0"
-asyncpg = "^0.28.0"
-pyjwt = "^2.8.0"
-python-jose = "^3.3.0"
+fastapi = "0.104.1"
+alembic = "1.12.1"
+sqlalchemy = "2.0.23"
+psycopg2-binary = "2.9.9"
+uvicorn = "0.23.2"
+invoke = "2.2.0"
+asyncpg = "0.28.0"
+pyjwt = "2.8.0"
+python-jose = "3.3.0"
 
 
 [build-system]
