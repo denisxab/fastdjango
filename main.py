@@ -1,19 +1,17 @@
 from fastapi import FastAPI
 
 from api.view import router_persons
+from fhelp.fjwt import router_jwt,add_handler_login_jwt
 
 app = FastAPI()
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
 
 # Добавляем роутер к приложению
 app.include_router(router_persons)
 
+def handler_login_jwt(username: str, password: str):
+    """Проверка авторизации пользователя"""
+    return True
 
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+add_handler_login_jwt(handler_login_jwt)
+app.include_router(router_jwt)
+

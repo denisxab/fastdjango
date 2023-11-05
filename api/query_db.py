@@ -1,3 +1,1 @@
-from sqlalchemy.orm import Session
-
-from .models import User
+from .models import User  # noqa F401

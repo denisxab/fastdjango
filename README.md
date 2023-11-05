@@ -1,3 +1,5 @@
+-   Простая админ панель
+
 # Использование
 
 ## Запустить проект
@@ -5,7 +7,7 @@
 Запустить DEV сервер:
 
 ```bash
-invoke rundev
+invoke server.rundev
 ```
 
 Запустить сервер:
@@ -19,19 +21,19 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 Прочитать записи из таблицы БД
 
 ```bash
-invoke dumpdata ИмяТаблицы > ИмяТаблицы.json
+invoke db.dumpdata ИмяТаблицы > ИмяТаблицы.json
 ```
 
 Прочитать из файла и записать в БД
 
 ```bash
-invoke loaddata ИмяТаблицы.json
+invoke db.loaddata ИмяТаблицы.json
 ```
 
 Удалить все записи из таблицы БД
 
 ```bash
-invoke flushtable users
+invoke db.flushtable users
 ```
 
 ## Проверки
@@ -41,7 +43,84 @@ invoke flushtable users
 1. Проверить подключение к БД
 
 ```bash
-invoke check
+invoke server.check
+```
+
+## Авторизация по JWT
+
+### 1. Создать SECRET_KEY
+
+Сгенерировать секретный ключ:
+
+```bash
+invoke server.gensecretkey
+```
+
+Вставьте этот ключ в `settings.py`:
+
+```bash
+SECRET_KEY = "f58f7156911ebf46b9d9ad35b43e60388dc8f639b356f59eac3aa8df45290d47"
+```
+
+### 2. Подключить к проекту
+
+Подключите аутентификацию и авторизацию по JWT:
+
+```python
+from fhelp.fjwt import router_jwt,add_handler_login_jwt
+
+app = FastAPI()
+
+def handler_login_jwt(username: str, password: str):
+    """Проверка аутентификации пользователя перед выдачей токена"""
+
+    ...
+
+    # Если False то будет исключение
+    return True
+
+add_handler_login_jwt(handler_login_jwt)
+app.include_router(router_jwt)
+```
+
+### 3. Аутентификация
+
+Выполнить аутентификацию и получить JWT:
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/login_jwt?username=Имя&password=Пароль' \
+  -H 'accept: application/json' \
+```
+
+### 4. Авторизация
+
+Использовать авторизацию для функций:
+
+```python
+from fhelp.fjwt import get_current_user
+
+@app.get("/Имя")
+async def Имя(current_user: dict = Depends(get_current_user)):
+    # Только авторизованный пользователь попадет в эту функцию
+    return current_user
+```
+
+Выполнить запрос с JWT:
+
+```bash
+curl --location 'http://localhost:8000/Путь' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkMTIzMTIzIiwiZXhwIjoxNjk5MjAyNzc4fQ.xv5G6e3HUS3rahvdYFwCzx7rK5cNplOFmbe4RQw5xig'
+```
+
+Текст ошибки авторизации:
+
+```http
+HTTP 403
+
+{
+    "detail": "Could not validate credentials"
+}
 ```
 
 # Оформление проекта
