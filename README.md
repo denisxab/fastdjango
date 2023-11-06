@@ -98,6 +98,9 @@ app.include_router(router_admin)
 
 Теперь можно пользоваться API админ панели:
 
+- ![](./doc/Screenshot_20231106_124724.png)
+- ![](./doc/Screenshot_20231106_124814.png)
+
 ## Авторизация по JWT
 
 ### 1. Создать SECRET_KEY

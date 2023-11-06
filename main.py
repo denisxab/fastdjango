@@ -31,6 +31,8 @@ add_handler_login_jwt(handler_login_jwt)
 app.include_router(router_jwt)
 
 
+# Подключить модели в админ панель:
+
 add_model_in_admin(model=User)
 add_model_in_admin(model=Person)
 
