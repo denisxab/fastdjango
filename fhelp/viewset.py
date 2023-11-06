@@ -26,6 +26,7 @@ async def view_retrieve(session: AsyncSession, model: DeclarativeMeta, pk):
         raise HTTPException(status_code=404, detail="User not found")
     return row
 
+
 def sync_view_retrieve(session: Session, model: DeclarativeMeta, pk):
     """Получить запись по PK"""
     name_pk = model.__table__.primary_key.columns.values()[0].name
@@ -95,14 +96,20 @@ def view_delete(session: Session, model: DeclarativeMeta, pk):
     return {"message": "User deleted successfully"}
 
 
-def view_update(session: Session, model: DeclarativeMeta, pk, data: BaseModel):
+def view_update(session: Session, model: DeclarativeMeta, pk, data: BaseModel | dict):
     """Обновить запись по PK"""
 
     row = sync_view_retrieve(session, model, pk)
     if row is None:
         raise HTTPException(status_code=404, detail="User not found")
-    for field, value in data.dict().items():
-        setattr(row, field, value)
+
+    if isinstance(data, BaseModel):
+        for field, value in data.dict().items():
+            setattr(row, field, value)
+    else:
+        for field, value in data.items():
+            setattr(row, field, value)
+
     session.commit()
     session.refresh(row)
     return row

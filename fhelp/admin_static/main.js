@@ -7,13 +7,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     const modelsList = document.getElementById("models");
     const recordsList = document.getElementById("recordsTable");
     const backButton = document.getElementById("backButton");
+    const buttonFromRow = document.getElementById("buttonFromRow");
     const deleteRowButton = document.getElementById("deleteRowButton");
+    const updateRowButton = document.getElementById("updateRowButton");
     const recordsHeader = document.getElementById("recordsHeader");
 
     let currentRecordsData, currentModel, currentRowPk;
 
     const fetchData = async (url) => (await fetch(url)).json();
-    const deleteData = async (url) => (await fetch(url, { method: "DELETE" })).json();
+    const deleteData = async (url) =>
+        (await fetch(url, { method: "DELETE" })).json();
+    const putData = async (url, data) =>
+        (
+            await fetch(url, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            })
+        ).json();
 
     const renderModelsList = (modelsData) => {
         modelsData.forEach((model) => {
@@ -21,7 +34,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             listItem.innerText = model.name;
             listItem.addEventListener("click", async () => {
                 currentModel = model.name;
-                renderRecordsTable(await fetchData(`${url_list_rows_model}?model=${model.name}`), model.name);
+                renderRecordsTable(
+                    await fetchData(
+                        `${url_list_rows_model}?model=${model.name}`
+                    ),
+                    model.name
+                );
             });
             modelsList.appendChild(listItem);
         });
@@ -32,8 +50,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (recordsData.length > 0) {
             recordsList.style.display = "block";
-            backButton.style.display = "none";
-            deleteRowButton.style.display = "none";
+
+            buttonFromRow.style.display = "none";
 
             const headerRow = recordsList.insertRow();
             for (const key in recordsData[0]) {
@@ -49,12 +67,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                     cell.textContent = record[key];
                     cell.addEventListener("click", async () => {
                         const pk = record["id"];
-                        const rowData = await fetchData(`${url_list_row_model_from_pk}${pk}?model=${model}`);
+                        const rowData = await fetchData(
+                            `${url_list_row_model_from_pk}${pk}?model=${model}`
+                        );
 
                         currentRowPk = pk;
-                        backButton.style.display = "block";
+                        buttonFromRow.style.display = "flex";
                         recordsHeader.textContent = "Запись";
-                        deleteRowButton.style.display = "block";
 
                         const detailsElement = document.createElement("div");
                         detailsElement.className = "record-details";
@@ -62,7 +81,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         for (const field in rowData) {
                             const fieldElement = document.createElement("div");
                             fieldElement.className = "field";
-                            fieldElement.innerHTML = `<strong>${field}:</strong> ${rowData[field]}`;
+                            fieldElement.innerHTML = `<strong>${field}:</strong><input type="text" value="${rowData[field]}" name="${field}">`;
                             detailsElement.appendChild(fieldElement);
                         }
 
@@ -81,16 +100,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     backButton.addEventListener("click", async () => {
-        const recordsData = await fetchData(`${url_list_rows_model}?model=${currentModel}`);
+        const recordsData = await fetchData(
+            `${url_list_rows_model}?model=${currentModel}`
+        );
         renderRecordsTable(recordsData, currentModel);
         recordsList.style.display = "block";
-        backButton.style.display = "none";
-        deleteRowButton.style.display = "none";
+        buttonFromRow.style.display = "none";
         recordsHeader.textContent = "Список записей";
     });
 
     deleteRowButton.addEventListener("click", async () => {
-        const recordsResponse = await deleteData(`${url_list_row_model_from_pk}${currentRowPk}?model=${currentModel}`);
+        const recordsResponse = await deleteData(
+            `${url_list_row_model_from_pk}${currentRowPk}?model=${currentModel}`
+        );
+        console.log(recordsResponse);
+        backButton.click();
+    });
+
+    updateRowButton.addEventListener("click", async () => {
+        elements =
+            document.getElementsByClassName("record-details")[0].childNodes;
+        data = {};
+        for (elm of elements) {
+            data[elm.childNodes[1].name] = elm.childNodes[1].value;
+        }
+        const recordsResponse = await putData(
+            `${url_list_row_model_from_pk}${currentRowPk}?model=${currentModel}`,
+            data
+        );
         console.log(recordsResponse);
         backButton.click();
     });

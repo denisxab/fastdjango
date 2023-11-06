@@ -81,7 +81,12 @@ tr:hover {
     text-align: center;
 }
 
-.back-button,
+#buttonFromRow {
+    display: flex;
+    flex-direction: row;
+}
+
+.fbutton,
 .delete-row-button {
     background-color: #444;
     color: #fff;
@@ -93,10 +98,13 @@ tr:hover {
     margin-top: 10px;
 }
 
-.back-button:hover {
+#backButton {
     background-color: #555;
 }
 
-.delete-row-button {
+#deleteRowButton {
     background-color: #a83939;
+}
+#updateRowButton {
+    background-color: #397ca8;
 }

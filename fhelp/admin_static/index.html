@@ -9,6 +9,7 @@
 </head>
 
 <body>
+
     <div class="container">
         <div class="models-list">
             <h2>Список моделей</h2>
@@ -18,8 +19,11 @@
             <h2 id="recordsHeader">Список записей</h2>
             <table id="recordsTable"></table>
             <div class="no-data" id="noDataMessage"></div>
-            <button id="backButton" class="back-button" style="display:none">Назад к списку записей</button>
-            <button id="deleteRowButton" class="delete-row-button" style="display:none">Удалить запись</button>
+            <div id="buttonFromRow" style="display:none">
+                <button id="backButton" class="fbutton">Назад к списку записей</button>
+                <button id="updateRowButton" class="fbutton">Обновить запись</button>
+                <button id="deleteRowButton" class="fbutton">Удалить запись</button>
+            </div>
         </div>
     </div>
     <script src="main.js"></script>
