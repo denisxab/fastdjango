@@ -62,4 +62,3 @@ async def login_jwt(username: str, password: str):
     )
 
     return {"access_token": access_token, "token_type": "Authorization Bearer"}
-
