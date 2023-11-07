@@ -12,7 +12,7 @@ from .models import Person, User
 router_persons = APIRouter()
 
 
-class UsersRouter(FViewsJwt, APIRouter):
+class UsersRouter(FViews, APIRouter):
     model = User
     url = "users"
     response_model = UserSchema
@@ -21,6 +21,7 @@ class UsersRouter(FViewsJwt, APIRouter):
     filter_column_like = ("snils",)
     page_size = 2
     order_by = ("id",)
+    cached = True
 
     # def __init__(self):
     #     super().__init__()

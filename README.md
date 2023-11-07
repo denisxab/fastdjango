@@ -98,8 +98,28 @@ app.include_router(router_admin)
 
 Теперь можно пользоваться API админ панели:
 
-- ![](./doc/Screenshot_20231106_124724.png)
-- ![](./doc/Screenshot_20231106_124814.png)
+-   ![](./doc/Screenshot_20231106_124724.png)
+-   ![](./doc/Screenshot_20231106_124814.png)
+
+## Использовать логгер
+
+В файл `main.py`
+
+```python
+from fhelp.flogger import basicConfigLogger
+
+basicConfigLogger(path_log_dir=Path(__file__).parent / "log")
+```
+
+Использовать логгер
+
+```python
+import logging
+
+logger = logging.getLogger("fhelp")
+
+logger.debug("Ответ из кеша")
+```
 
 ## Авторизация по JWT
 

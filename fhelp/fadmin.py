@@ -1,3 +1,4 @@
+"""Реализация API простой админ панели"""
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session

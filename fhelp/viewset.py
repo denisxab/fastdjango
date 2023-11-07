@@ -14,7 +14,10 @@ from sqlalchemy.orm.decl_api import DeclarativeMeta
 from fhelp.database import get_session
 from fhelp.database_async import async_get_session
 from fhelp.fjwt import get_current_user
+from fhelp.flogger import getLogger
 from fhelp.utlis import count_rows
+
+logger = getLogger()
 
 
 async def view_retrieve(session: AsyncSession, model: DeclarativeMeta, pk):
@@ -143,6 +146,8 @@ class FViews:
         self.max_page_size = getattr(self, "max_page_size", 1000)
         # O Сортировка для списка
         self.order_by = getattr(self, "order_by", None)
+        # O Кешировать ответы на GET запосы, и отчищать его при POST,DELETE,PUT
+        self.cached = getattr(self, "cached", None)
 
         self.add_api_routes()
 
@@ -181,6 +186,10 @@ class FViews:
         self.delete(f"/{self.url}" + "/{pk}")(self.delete_view)
         self.put(f"/{self.url}" + "/{pk}")(tmp_update_view)
 
+        self._cached_retrieve_view = {}
+        self._cached_list_view = None
+        self._cached_list_view_page_size = {}
+
     async def list_view(
         self, request: Request, session: AsyncSession = Depends(async_get_session)
     ):
@@ -191,6 +200,7 @@ class FViews:
         page_size=Размер страницы
         *filter_column*=Фильтрация по имени поля
         """
+
         filters = None
         filter_like = None
         query_params = request.query_params._dict
@@ -198,9 +208,34 @@ class FViews:
             filters = {f: query_params.get(f) for f in self.filter_column_eq}
         if self.filter_column_like:
             filter_like = {f: query_params.get(f) for f in self.filter_column_like}
+
+        if (
+            not any((query_params, self.page_size))
+            and self.cached
+            and self._cached_list_view
+        ):
+            # Если нет ни каких фильтров то вернем закешированный ответ
+            logger.debug("Ответ из кеша")
+            return self._cached_list_view
+
         if self.page_size:
             page = int(query_params.get("page", 0))
             _page_size = int(query_params.get("page_size", self.page_size))
+
+            if (
+                not any(
+                    (
+                        any(list(filters.values())),
+                        any(list(filter_like.values())),
+                        query_params.get("page_size"),
+                    )
+                )
+                and self.cached
+                and (res := self._cached_list_view_page_size.get(page))
+            ):
+                # Если нет ни каких фильтров то вернем закешированный ответ
+                logger.debug("Ответ из кеша")
+                return res
 
             if _page_size > self.max_page_size:
                 raise HTTPException(
@@ -216,7 +251,7 @@ class FViews:
             next_page = page + 1 if count > (page + 1) * _page_size else None
             previous_page = page - 1 if page - 1 > -1 else None
 
-            return {
+            res = {
                 "count": count,
                 "next": f"{url}?page={next_page}&page_size={_page_size}"
                 if next_page
@@ -234,14 +269,42 @@ class FViews:
                     order_by=self.order_by,
                 ),
             }
-        return await view_list(
+
+            if (
+                not any(
+                    (
+                        any(list(filters.values())),
+                        any(list(filter_like.values())),
+                        query_params.get("page_size"),
+                    )
+                )
+                and self.cached
+            ):
+                # Если нет ни каких фильтров то вернем закешированный ответ
+                self._cached_list_view_page_size[page] = res
+
+            return res
+
+        res = await view_list(
             session, self.model, filters, filter_like, order_by=self.order_by
         )
+        if not any((query_params, self.page_size)) and self.cached:
+            # Если нет ни каких фильтров то вернем закешированный ответ
+            self._cached_list_view = res
+
+        return res
 
     async def retrieve_view(
         self, pk: int, session: AsyncSession = Depends(async_get_session)
     ):
-        return await view_retrieve(session, self.model, pk)
+        if self.cached and (res := self._cached_retrieve_view.get(pk)):
+            logger.debug("Ответ из кеша")
+            return res
+        else:
+            res = await view_retrieve(session, self.model, pk)
+            if self.cached:
+                self._cached_retrieve_view[pk] = res
+            return res
 
     def create_view(
         self,
@@ -249,14 +312,26 @@ class FViews:
         session: Session = Depends(get_session),
     ):
         _session = session.dependency().__next__()
-        return view_create(_session, self.model, data)
+        res = view_create(_session, self.model, data)
+
+        if res and self.cached:
+            logger.debug("Отчистка из кеша")
+            self._cached_list_view = None
+            self._cached_list_view_page_size = {}
+        return res
 
     def delete_view(
         self,
         pk: int,
         session: Session = Depends(get_session),
     ):
-        return view_delete(session, self.model, pk)
+        res = view_delete(session, self.model, pk)
+        if res and self.cached:
+            logger.debug(f"Отчистка из кеша {pk=}")
+            self._cached_list_view = None
+            self._cached_list_view_page_size = {}
+            self._cached_retrieve_view.pop(pk, None)
+        return res
 
     def update_view(
         self,
@@ -265,7 +340,13 @@ class FViews:
         session: Session = Depends(get_session),
     ):
         _session = session.dependency().__next__()
-        return view_update(_session, self.model, pk, data)
+        res = view_update(_session, self.model, pk, data)
+        if res and self.cached:
+            logger.debug(f"Отчистка из кеша {pk=}")
+            self._cached_list_view = None
+            self._cached_list_view_page_size = {}
+            self._cached_retrieve_view.pop(pk, None)
+        return res
 
 
 class FViewsJwt(FViews):
@@ -276,7 +357,6 @@ class FViewsJwt(FViews):
         current_user: dict = Depends(get_current_user),
     ):
         return await super().list_view(request, session)
-        ...
 
     async def retrieve_view(
         self,

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -5,9 +7,9 @@ from api.models import Person, User
 from api.view import router_persons
 from fhelp.fadmin import add_model_in_admin, router_admin
 from fhelp.fjwt import add_handler_login_jwt, router_jwt
+from fhelp.flogger import basicConfigLogger
 
 app = FastAPI()
-
 
 # Добавляем миддлвару для обработки CORS
 app.add_middleware(
@@ -37,3 +39,6 @@ add_model_in_admin(model=User)
 add_model_in_admin(model=Person)
 
 app.include_router(router_admin)
+
+# Настраиваем логгер
+basicConfigLogger(path_log_dir=Path(__file__).parent / "log", level="DEBUG")
