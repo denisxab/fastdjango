@@ -10,7 +10,7 @@ import psycopg2
 from invoke import Collection, task
 
 from fhelp.utlis import sql_read, sql_write
-from settings import APP_PORT, DATABASE_URL
+from settings import APP_PORT, DATABASE_URL, REDIS_URL
 
 
 @task
@@ -25,6 +25,24 @@ def gensecretkey(ctx):
     import secrets
 
     print(secrets.token_hex(32))
+
+
+@task
+def clearredis(ctx):
+    """Отчистить redis"""
+
+    import asyncio
+
+    from redis import Redis
+    from redis import asyncio as aioredis
+
+    async def _inner():
+        redis: Redis = aioredis.from_url(REDIS_URL)
+        keys_to_delete = await redis.keys("*")
+        if keys_to_delete:
+            await redis.delete(*keys_to_delete)
+
+    asyncio.run(_inner())
 
 
 @task
@@ -151,6 +169,7 @@ namespace_server = Collection()
 namespace_server.add_task(rundev)
 namespace_server.add_task(check)
 namespace_server.add_task(gensecretkey)
+namespace_server.add_task(clearredis)
 
 namespace_db = Collection()
 namespace_db.add_task(makemigrations)

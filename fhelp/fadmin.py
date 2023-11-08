@@ -14,8 +14,12 @@ router_admin = APIRouter(prefix="/admin")
 ADMIN_SETTINGS: dict = {}
 
 
-def add_model_in_admin(model: DeclarativeMeta):
-    ADMIN_SETTINGS[model.__name__] = model
+def add_model_in_admin(model: DeclarativeMeta | list[DeclarativeMeta]):
+    if isinstance(model, list):
+        for m in model:
+            ADMIN_SETTINGS[m.__name__] = m
+    else:
+        ADMIN_SETTINGS[model.__name__] = model
 
 
 @router_admin.get("/models")

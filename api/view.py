@@ -19,9 +19,9 @@ class UsersRouter(FViews, APIRouter):
     schema_body = CU_UserSchema
     filter_column_eq = ("level",)
     filter_column_like = ("snils",)
-    page_size = 2
+    page_size = 4
     order_by = ("id",)
-    cached = True
+    cached = "redis"
 
     # def __init__(self):
     #     super().__init__()

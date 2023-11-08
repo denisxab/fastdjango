@@ -9,9 +9,15 @@ class CU_UserSchema(BaseModel):
     snils: Optional[str]
     level: Optional[int]
 
+    class Config:
+        orm_mode = True
+
 
 class UserSchema(CU_UserSchema):
     id: int
+
+    class Config:
+        orm_mode = True
 
 
 class PersonSchema(BaseModel):
@@ -19,7 +25,13 @@ class PersonSchema(BaseModel):
     fio: str
     user_id: UserSchema
 
+    class Config:
+        orm_mode = True
+
 
 class CU_PersonSchema(BaseModel):
     fio: str
     user_id: int
+
+    class Config:
+        orm_mode = True

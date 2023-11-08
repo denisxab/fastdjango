@@ -1,10 +1,12 @@
 """
 Автоматизация для построение Views
 """
+import asyncio
 from copy import deepcopy
 from typing import Any, Optional
 
 from fastapi import Depends, HTTPException, Request
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +15,7 @@ from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 from fhelp.database import get_session
 from fhelp.database_async import async_get_session
+from fhelp.fcached import RamServerCached, RedisCached
 from fhelp.fjwt import get_current_user
 from fhelp.flogger import getLogger
 from fhelp.utlis import count_rows
@@ -146,8 +149,15 @@ class FViews:
         self.max_page_size = getattr(self, "max_page_size", 1000)
         # O Сортировка для списка
         self.order_by = getattr(self, "order_by", None)
-        # O Кешировать ответы на GET запосы, и отчищать его при POST,DELETE,PUT
+        # O Кешировать ответы на GET запросы, и отчищать его при POST,DELETE,PUT
         self.cached = getattr(self, "cached", None)
+
+        if self.cached:
+            if self.cached == "ram":
+                self._cached = RamServerCached()
+
+            elif self.cached == "redis":
+                self._cached = RedisCached()
 
         self.add_api_routes()
 
@@ -176,9 +186,10 @@ class FViews:
             self.get(f"/{self.url}/", response_model=list[self.response_model])(
                 self.list_view
             )
-        self.get(f"/{self.url}" + "/{pk}", response_model=self.response_model)(
-            self.retrieve_view
-        )
+        self.get(
+            f"/{self.url}" + "/{pk}",
+            response_model=self.response_model,
+        )(self.retrieve_view)
         self.post(
             f"/{self.url}/",
             response_model=self.response_model,
@@ -186,11 +197,7 @@ class FViews:
         self.delete(f"/{self.url}" + "/{pk}")(self.delete_view)
         self.put(f"/{self.url}" + "/{pk}")(tmp_update_view)
 
-        self._cached_retrieve_view = {}
-        self._cached_list_view = None
-        self._cached_list_view_page_size = {}
-
-    async def list_view(
+    async def list_view(  # noqa C901
         self, request: Request, session: AsyncSession = Depends(async_get_session)
     ):
         """
@@ -209,18 +216,12 @@ class FViews:
         if self.filter_column_like:
             filter_like = {f: query_params.get(f) for f in self.filter_column_like}
 
-        if (
-            not any((query_params, self.page_size))
-            and self.cached
-            and self._cached_list_view
-        ):
-            # Если нет ни каких фильтров то вернем закешированный ответ
-            logger.debug("Ответ из кеша")
-            return self._cached_list_view
-
         if self.page_size:
             page = int(query_params.get("page", 0))
             _page_size = int(query_params.get("page_size", self.page_size))
+
+            if self.cached:
+                ckey = f"list_view-{self.__class__.__name__}-{page}"
 
             if (
                 not any(
@@ -231,11 +232,12 @@ class FViews:
                     )
                 )
                 and self.cached
-                and (res := self._cached_list_view_page_size.get(page))
             ):
-                # Если нет ни каких фильтров то вернем закешированный ответ
-                logger.debug("Ответ из кеша")
-                return res
+                res = await self._cached.get_json(ckey)
+                if res:
+                    # Если нет ни каких фильтров то вернем закешированный ответ
+                    logger.debug("Ответ из кеша")
+                    return res
 
             if _page_size > self.max_page_size:
                 raise HTTPException(
@@ -269,6 +271,7 @@ class FViews:
                     order_by=self.order_by,
                 ),
             }
+            res_json = jsonable_encoder(res)
 
             if (
                 not any(
@@ -281,30 +284,50 @@ class FViews:
                 and self.cached
             ):
                 # Если нет ни каких фильтров то вернем закешированный ответ
-                self._cached_list_view_page_size[page] = res
+                await self._cached.set_json(ckey, res_json)
 
-            return res
+            return res_json
 
-        res = await view_list(
-            session, self.model, filters, filter_like, order_by=self.order_by
-        )
-        if not any((query_params, self.page_size)) and self.cached:
-            # Если нет ни каких фильтров то вернем закешированный ответ
-            self._cached_list_view = res
+        else:
+            if self.cached:
+                ckey = f"list_view-{self.__class__.__name__}"
 
-        return res
+            if not any((query_params, self.page_size)) and self.cached:
+                res = await self._cached.get_json(ckey)
+                if res:
+                    # Если нет ни каких фильтров то вернем закешированный ответ
+                    logger.debug("Ответ из кеша")
+                    return res
+
+            res = await view_list(
+                session, self.model, filters, filter_like, order_by=self.order_by
+            )
+            res_json = jsonable_encoder(res)
+
+            if not any((query_params, self.page_size)) and self.cached:
+                # Если нет ни каких фильтров то вернем закешированный ответ
+                await self._cached.set_json(ckey, res_json)
+
+            return res_json
 
     async def retrieve_view(
         self, pk: int, session: AsyncSession = Depends(async_get_session)
     ):
-        if self.cached and (res := self._cached_retrieve_view.get(pk)):
-            logger.debug("Ответ из кеша")
-            return res
-        else:
-            res = await view_retrieve(session, self.model, pk)
-            if self.cached:
-                self._cached_retrieve_view[pk] = res
-            return res
+        if self.cached:
+            ckey = f"retrieve_view-{self.__class__.__name__}-{pk}"
+
+        if self.cached:
+            res = await self._cached.get_json(ckey)
+            if res:
+                logger.debug("Ответ из кеша")
+                return res
+
+        res = await view_retrieve(session, self.model, pk)
+        res_json = jsonable_encoder(res)
+
+        if self.cached:
+            await self._cached.set_json(ckey, res_json)
+        return res_json
 
     def create_view(
         self,
@@ -316,8 +339,9 @@ class FViews:
 
         if res and self.cached:
             logger.debug("Отчистка из кеша")
-            self._cached_list_view = None
-            self._cached_list_view_page_size = {}
+            ckey = f"list_view-{self.__class__.__name__}"
+            asyncio.run(self._cached.delete_startswith(ckey))
+
         return res
 
     def delete_view(
@@ -328,9 +352,12 @@ class FViews:
         res = view_delete(session, self.model, pk)
         if res and self.cached:
             logger.debug(f"Отчистка из кеша {pk=}")
-            self._cached_list_view = None
-            self._cached_list_view_page_size = {}
-            self._cached_retrieve_view.pop(pk, None)
+            ckey = f"list_view-{self.__class__.__name__}"
+            asyncio.run(self._cached.delete_startswith(ckey))
+
+            ckey = f"retrieve_view-{self.__class__.__name__}-{pk}"
+            asyncio.run(self._cached.delete(ckey))
+
         return res
 
     def update_view(
@@ -343,9 +370,12 @@ class FViews:
         res = view_update(_session, self.model, pk, data)
         if res and self.cached:
             logger.debug(f"Отчистка из кеша {pk=}")
-            self._cached_list_view = None
-            self._cached_list_view_page_size = {}
-            self._cached_retrieve_view.pop(pk, None)
+            ckey = f"list_view-{self.__class__.__name__}"
+            asyncio.run(self._cached.delete_startswith(ckey))
+
+            ckey = f"retrieve_view-{self.__class__.__name__}-{pk}"
+            asyncio.run(self._cached.delete(ckey))
+
         return res
 
 

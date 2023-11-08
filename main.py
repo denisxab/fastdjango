@@ -11,6 +11,25 @@ from fhelp.flogger import basicConfigLogger
 
 app = FastAPI()
 
+# Добавляем роутер к приложению
+app.include_router(router_persons)
+
+# Настраиваем логгер
+basicConfigLogger(path_log_dir=Path(__file__).parent / "log", level="DEBUG")
+
+"""Авторизация по JWT"""
+
+
+def handler_login_jwt(username: str, password: str):
+    """Логика проверка авторизации пользователя"""
+    return True
+
+
+add_handler_login_jwt(handler_login_jwt)
+app.include_router(router_jwt)
+
+
+"""Админ панель"""
 # Добавляем миддлвару для обработки CORS
 app.add_middleware(
     CORSMiddleware,
@@ -20,25 +39,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Добавляем роутер к приложению
-app.include_router(router_persons)
-
-
-def handler_login_jwt(username: str, password: str):
-    """Проверка авторизации пользователя"""
-    return True
-
-
-add_handler_login_jwt(handler_login_jwt)
-app.include_router(router_jwt)
-
-
 # Подключить модели в админ панель:
-
-add_model_in_admin(model=User)
-add_model_in_admin(model=Person)
-
+add_model_in_admin(model=[User, Person])
 app.include_router(router_admin)
-
-# Настраиваем логгер
-basicConfigLogger(path_log_dir=Path(__file__).parent / "log", level="DEBUG")
