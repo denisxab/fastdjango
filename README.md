@@ -58,12 +58,21 @@ router_persons = APIRouter()
 class UsersRouter(FViews, APIRouter):
     model = User
     url = "users"
+    # Схема ответа
     response_model = UserSchema
+    # Схема POST BODY
     schema_body = CU_UserSchema
+    # Разрешить фильтрацию списка по точному совпадению
     filter_column_eq = ("level",)
+    # Разрешить фильтрацию списка по не точному совпадению
     filter_column_like = ("snils",)
+    # Пагинация списка
     page_size = 2
+    # Сортировка списка
     order_by = ("id",)
+    # Использовать кеширование GET запросов, при POST,PUT,DELETE кеш будет удалён
+    cached = "redis"
+
 
 router_persons.include_router(UsersRouter())
 ```

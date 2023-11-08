@@ -62,6 +62,9 @@ class RamServerCached(Cached):
 
 
 class RedisCached(Cached):
+    # По умолчанию значение храниться 3 минуты
+    DEFAULT_EXPIRE = 60 * 3
+
     def __init__(self) -> None:
         self._redisConfConnect = dict(
             url=REDIS_URL
@@ -80,6 +83,7 @@ class RedisCached(Cached):
     async def set(self, key: str, value: str | int | float | bool):
         redis: Redis = aioredis.from_url(**self._redisConfConnect)
         await redis.set(key, value)
+        await redis.expire(key, self.DEFAULT_EXPIRE)
 
     async def delete(self, key: str):
         redis: Redis = aioredis.from_url(**self._redisConfConnect)
