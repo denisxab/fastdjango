@@ -8,7 +8,7 @@
 invoke server.rundev
 ```
 
-Запустить сервер:
+Аналог команды:
 
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
@@ -210,6 +210,63 @@ HTTP 403
 ### 4.1 Авторизация для Views
 
 Используйте класс `FViewsJwt` вместо `FViews`
+
+## Тестирование FastAPI
+
+Пример подключения:
+
+Создать файл `./conftest.py`:
+
+```python
+from fhelp.base_conftest import setup_before_tests  # noqa F401
+```
+
+Пример теста:
+
+```python
+from fastapi.testclient import TestClient
+from fhelp.ftest import BaseFastApiTest
+from settings import BASE_DIR
+
+
+class TestMainApp(BaseFastApiTest):
+    # Список фикстур которые нужно устанавливать при каждой функции теста
+    fixtures = [BASE_DIR / "fixtures" / "test_base.json"]
+
+    def setup_method(self):
+        # Можете добавить логику при зпуски тестовой функции
+        super().setup_method()
+
+    # Пример тестовой функции
+    def test_read_main(self, client: TestClient):
+        excepted_response = [
+            {
+                "username": "2Petro",
+                "email_user": "2Petro@google.com",
+                "snils": "1231121245",
+                "level": 1,
+                "id": 2,
+            },
+            {
+                "username": "Иванов",
+                "email_user": "3Gongo@google.com",
+                "snils": "453514",
+                "level": 3,
+                "id": 3,
+            },
+        ]
+        # Тест синхронного router
+        response = client.get("/test")
+        assert response.status_code == 200
+        assert response.json() == excepted_response
+
+        # Тест асинхронного router
+        response2 = client.get("/async_test")
+        assert response2.status_code == 200
+        assert response.json() == excepted_response
+```
+
+
 
 # Оформление проекта
 

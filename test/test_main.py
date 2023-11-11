@@ -1,14 +1,15 @@
-from fhelp.ftest import BaseFtest
+from fastapi.testclient import TestClient
+from fhelp.ftest import BaseFastApiTest
 from settings import BASE_DIR
 
 
-class TestYourFastAPI(BaseFtest):
+class TestMainApp(BaseFastApiTest):
     fixtures = [BASE_DIR / "fixtures" / "test_base.json"]
 
     def setup_method(self):
         super().setup_method()
 
-    def test_read_main(self, client):
+    def test_read_main(self, client: TestClient):
         excepted_response = [
             {
                 "username": "2Petro",
@@ -25,10 +26,10 @@ class TestYourFastAPI(BaseFtest):
                 "id": 3,
             },
         ]
-        response = client.get("/")
+        response = client.get("/test")
         assert response.status_code == 200
         assert response.json() == excepted_response
 
-        response2 = client.get("/async")
+        response2 = client.get("/async_test")
         assert response2.status_code == 200
         assert response.json() == excepted_response

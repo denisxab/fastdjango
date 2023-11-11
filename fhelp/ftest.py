@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -45,7 +46,7 @@ app.dependency_overrides[async_get_session] = override_async_get_session
 
 def migrate_test_db():
     """Выполнить все миграции к тестовой БД"""
-    # Опционально: создайте базу данных если она несуществует
+    # Опционально: создайте базу данных если она не существует
     with real_engine.connect() as connection:
         create_db_query = text(
             f"""DO $$
@@ -57,6 +58,7 @@ END $$;
 """
         )
         connection.execute(create_db_query)
+        connection.commit()
 
     os.environ["DATABASE_URL"] = TEST_DATABASE_URL
     result = subprocess.run(
@@ -69,10 +71,10 @@ END $$;
     print(result.stdout)
 
 
-def load_fixteres(paths: list[Path]):
+def load_fixtures(paths: list[Path]):
     """Загрузить фикстуры
 
-    paths: Пути к виксутрам
+    paths: Пути к фикстурам
     """
 
     for p in paths:
@@ -92,15 +94,17 @@ def refresh_db():
         # Выполните операцию DROP DATABASE
         drop_db_query = text(f"DROP DATABASE IF EXISTS {TEST_DATABASE_NAME};")
         connection.execute(drop_db_query)
+        connection.commit()
 
     # Опционально: создайте базу данных заново после удаления (если это нужно)
     with real_engine.connect() as connection:
         create_db_query = text(f"CREATE DATABASE {TEST_DATABASE_NAME};")
         connection.execute(create_db_query)
+        connection.commit()
 
 
 def refresh_tables():
-    """Удалить все записи во всех таблиах, но оставить DLL структуру"""
+    """Удалить все записи во всех таблицах, но оставить DLL структуру"""
     # Замените 'your_database_uri' на URI вашей базы данных
     metadata = MetaData()
 
@@ -119,31 +123,40 @@ def refresh_tables():
                 f"TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE;"
             )
             connection.execute(drop_db_query)
+            connection.commit()
 
 
 def run_test(reuse_db: bool = False):
     """
+    Логика запска теста FastApi проекта
 
     reuse_db: Если True то не будет удалять базу пред запуском
     """
-    # Выполняеться при старте тестов
     if reuse_db:
+        # Удалить БД и создать по новой
         print("refresh_db", refresh_db())
 
+    # Применить миграции через alembic
     print("migrate_test_db", migrate_test_db())
 
 
-class BaseFtest:
+class BaseFastApiTest:
     @pytest.fixture
     def client(self) -> TestClient:
+        """Получить клиента из которого делать запрос"""
         client = TestClient(app)
         return client
+
+    @pytest.fixture
+    def app(self) -> FastAPI:
+        """Получить клиента из которого делать запрос"""
+        return app
 
     def setup_method(self):
         # Код, который нужно выполнить перед каждым тестом
         # Например, подготовка данных или настройка окружения
         if fixtures := getattr(self, "fixtures", None):
-            load_fixteres(paths=fixtures)
+            load_fixtures(paths=fixtures)
 
     def teardown_method(self):
         # Код, который нужно выполнить после каждого теста

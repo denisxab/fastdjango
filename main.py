@@ -1,3 +1,5 @@
+"""Главный файл FastApi"""
+
 from pathlib import Path
 
 from fastapi import Depends, FastAPI
@@ -14,6 +16,7 @@ from fhelp.database_async import async_get_session
 from fhelp.fadmin import add_model_in_admin, router_admin
 from fhelp.fjwt import add_handler_login_jwt, router_jwt
 from fhelp.flogger import basicConfigLogger
+
 
 app = FastAPI(title="FastDjango APp")
 
@@ -48,6 +51,9 @@ app.add_middleware(
 # Подключить модели в админ панель:
 add_model_in_admin(model=[User, Person])
 app.include_router(router_admin)
+
+
+"""Подключение тестовых router"""
 
 
 @app.get("/async_test")

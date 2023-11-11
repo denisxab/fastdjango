@@ -9,6 +9,7 @@ from invoke import Collection, Context, task
 
 from fhelp.ffiextures import base_dumpdata, base_loaddata
 from fhelp.utlis import sql_write
+from main import app
 from settings import APP_PORT, DATABASE_URL, REDIS_URL
 
 
@@ -91,19 +92,19 @@ def check(ctx: Context):
 
 
 @task
-def loaddata(ctx: Context, files_pattern: str, dsn: str = None):
+def loaddata(ctx: Context, files_pattern: str):
     """Прочитать из файла и записать в БД
 
     invoke loaddata users.json
     """
-    base_loaddata(files_pattern, dsn)
+    base_loaddata(files_pattern)
 
 
 @task
 def dumpdata(ctx: Context, name_table: str, out_file: str = None):
     """Прочитать записи из БД
 
-    invoke dumpdata users > users.json
+    invoke dumpdata users -o='users.json'
     """
     base_dumpdata(name_table, out_file)
 
@@ -149,12 +150,25 @@ def pytest(ctx: Context):
     ctx.run("pytest")
 
 
+@task
+def listurl(ctx: Context):
+    """Получение всех маршрутов"""
+    all_routes = app.routes
+    paths = list(set(route.path for route in all_routes))
+    paths.sort()
+    print("===========")
+    for path in paths:
+        print(path)
+    print("===========")
+
+
 namespace_server = Collection()
 namespace_server.add_task(rundev)
 namespace_server.add_task(check)
 namespace_server.add_task(gensecretkey)
 namespace_server.add_task(clearredis)
 namespace_server.add_task(downloadpip)
+namespace_server.add_task(listurl)
 
 namespace_db = Collection()
 namespace_db.add_task(makemigrations)
