@@ -1,15 +1,21 @@
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from api.models import Person, User
-from api.view import router_persons
+from api.router import router_persons
+from api.schema import UserSchema
+from fhelp.database import get_session
+from fhelp.database_async import async_get_session
 from fhelp.fadmin import add_model_in_admin, router_admin
 from fhelp.fjwt import add_handler_login_jwt, router_jwt
 from fhelp.flogger import basicConfigLogger
 
-app = FastAPI()
+app = FastAPI(title="FastDjango APp")
 
 # Добавляем роутер к приложению
 app.include_router(router_persons)
@@ -22,7 +28,7 @@ basicConfigLogger(path_log_dir=Path(__file__).parent / "log", level="DEBUG")
 
 def handler_login_jwt(username: str, password: str):
     """Логика проверка авторизации пользователя"""
-    return True
+    return (True, "")
 
 
 add_handler_login_jwt(handler_login_jwt)
@@ -42,3 +48,21 @@ app.add_middleware(
 # Подключить модели в админ панель:
 add_model_in_admin(model=[User, Person])
 app.include_router(router_admin)
+
+
+@app.get("/async_test")
+async def async_test_main(
+    session: AsyncSession = Depends(async_get_session),
+) -> list[UserSchema]:
+    query = select(User)
+    rows = await session.execute(query)
+    return rows.scalars().all()
+
+
+@app.get("/test")
+def test_main(
+    session: Session = Depends(get_session),
+) -> list[UserSchema]:
+    query = select(User)
+    rows = session.execute(query)
+    return rows.scalars().all()

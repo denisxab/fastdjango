@@ -1,17 +1,20 @@
 """
 Шаблон для alembic/env.py
 """
+import os
+
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
 # Эти две строки подключаются к вашей базе данных
-from main import app  # Импортируем FastAPI app
+from main import app  # noqa F401 # Импортируем FastAPI app
 from models import Base  # Предполагаем, что у вас есть модели
-from settings import DATABASE_URL
+from settings import DATABASE_URL as DATABASE_URL_DEFAULT
+
+DATABASE_URL = os.environ.get("DATABASE_URL", DATABASE_URL_DEFAULT)
 
 # Инициализация базы данных
-
 target_metadata = Base.metadata
 
 # Alembic Config объект

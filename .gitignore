@@ -6,4 +6,3 @@ venv
 /dist
 *.pyc
 .vscode
-__pycache__

@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.schema import CU_PersonSchema, CU_UserSchema, PersonSchema, UserSchema
 from fhelp.database_async import async_get_session
 from fhelp.fjwt import get_current_user
-from fhelp.viewset import FViews, FViewsJwt, view_retrieve
+from fhelp.viewset import FViews, view_retrieve
 
 from .models import Person, User
 
@@ -105,5 +105,26 @@ async def async_endpoint(session: AsyncSession = Depends(async_get_session)):
     return user
 
 
+async def sleep_task(text: str):
+    from time import sleep
+
+    sleep(2)
+    print(":::", text)
+
+
+@router_persons.get("/bg_task/")
+async def bg_task(
+    background_tasks: BackgroundTasks,
+    session: AsyncSession = Depends(async_get_session),
+):
+    """Пример фоновой задачи через FastApi"""
+    background_tasks.add_task(sleep_task, "Пример фоновой задачи")
+    user = await async_view_list(session, User)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+# Подключение всех URL ViewSet к Router
 router_persons.include_router(UsersRouter())
 router_persons.include_router(PersonRouter())

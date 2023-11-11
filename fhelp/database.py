@@ -3,7 +3,7 @@
 """
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from settings import DATABASE_URL, DEBUG
 
@@ -14,10 +14,12 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 # Функция зависимости для получения сессии базы данных
-def get_session():
+def get_session() -> Session:
     """
+    from fastapi import Depends
     from sqlalchemy.orm import Session
     from .models import User
+
 
     @router_persons.get("/users/")
     def read_user_all(session: Session = Depends(get_session)):

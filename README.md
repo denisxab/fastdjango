@@ -19,7 +19,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 Прочитать записи из таблицы БД
 
 ```bash
-invoke db.dumpdata ИмяТаблицы > ИмяТаблицы.json
+invoke db.dumpdata ИмяТаблицы -o='ИмяФикстуры.json'
 ```
 
 Прочитать из файла и записать в БД
@@ -160,8 +160,8 @@ def handler_login_jwt(username: str, password: str):
 
     ...
 
-    # Если False то будет исключение
-    return True
+    # Если (False, 'Текст ошибки') то будет исключение
+    return (True,'')
 
 add_handler_login_jwt(handler_login_jwt)
 app.include_router(router_jwt)

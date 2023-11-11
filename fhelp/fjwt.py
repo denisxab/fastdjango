@@ -49,10 +49,11 @@ def add_handler_login_jwt(callback):
 async def login_jwt(username: str, password: str):
     # Проверка логина и пароля (это может зависеть от вашей системы аутентификации)
     for handler in list_handler_login_jwt:
-        if not handler(username, password):
+        status, text = handler(username, password)
+        if not status:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not exists username or password",
+                detail=text,
             )
 
     # Если пользователь успешно аутентифицирован, создаем токен

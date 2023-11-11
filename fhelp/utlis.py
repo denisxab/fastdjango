@@ -14,22 +14,22 @@ def dictfetchall(cursor) -> list[dict[str, Any]]:
     return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 
-def connect_db(fun: Callable) -> Any:
-    with connect(dsn=DATABASE_URL) as conn, conn.cursor() as cur:
+def connect_db(fun: Callable, dsn=None) -> Any:
+    with connect(dsn=dsn if dsn else DATABASE_URL) as conn, conn.cursor() as cur:
         return fun(cur)
 
 
-def sql_read(sql_query: str):
+def sql_read(sql_query: str, dsn=None):
     """Выполнить RAW SQL чтение"""
 
     def _inner(cur):
         cur.execute(sql_query)
         return dictfetchall(cur)
 
-    return connect_db(_inner)
+    return connect_db(_inner, dsn)
 
 
-def sql_write(sql_query: str):
+def sql_write(sql_query: str, dsn=None):
     """Выполнить RAW SQL запись"""
 
     def _inner(cur):
@@ -37,7 +37,7 @@ def sql_write(sql_query: str):
         cur.connection.commit()
         return cur.rowcount
 
-    return connect_db(_inner)
+    return connect_db(_inner, dsn)
 
 
 async def count_rows(session: AsyncSession, model: DeclarativeMeta):

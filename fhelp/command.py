@@ -2,25 +2,24 @@
 Базовые команды для проекта
 """
 
-import json
-from pathlib import Path
 from pprint import pprint
 
 import psycopg2
-from invoke import Collection, task
+from invoke import Collection, Context, task
 
-from fhelp.utlis import sql_read, sql_write
+from fhelp.ffiextures import base_dumpdata, base_loaddata
+from fhelp.utlis import sql_write
 from settings import APP_PORT, DATABASE_URL, REDIS_URL
 
 
 @task
-def rundev(ctx):
+def rundev(ctx: Context):
     """Запустить DEV сервер"""
     ctx.run(f"uvicorn main:app --reload --host 0.0.0.0 --port {APP_PORT}")
 
 
 @task
-def gensecretkey(ctx):
+def gensecretkey(ctx: Context):
     """Создать SECRET_KEY"""
     import secrets
 
@@ -28,7 +27,7 @@ def gensecretkey(ctx):
 
 
 @task
-def clearredis(ctx):
+def clearredis(ctx: Context):
     """Отчистить redis"""
 
     import asyncio
@@ -43,22 +42,35 @@ def clearredis(ctx):
             await redis.delete(*keys_to_delete)
 
     asyncio.run(_inner())
+    print("Redis очищен")
 
 
 @task
-def makemigrations(ctx):
+def downloadpip(ctx: Context):
+    """Скачать все файлы зависимостей локально"""
+    ctx.run("poetry export -f requirements.txt --output requirements.txt")
+    ctx.run("mkdir downloaded_libraries")
+    ctx.run("pip install -r requirements.txt -t downloaded_libraries")
+    # Архивируем папку
+    # ctx.run("tar -czvf downloaded_libraries.tar.gz downloaded_libraries")
+    # Скачать все зависимости из локальных файлов в папке downloaded_libraries
+    # ctx.run("pip install --no-index --find-links=./downloaded_libraries -r requirements.txt")
+
+
+@task
+def makemigrations(ctx: Context):
     """Создать миграцию"""
-    ctx.run("alembic revision --autogenerate")
+    print(ctx.run("alembic revision --autogenerate"))
 
 
 @task
-def migrate(ctx):
+def migrate(ctx: Context):
     """Применить все миграции"""
-    ctx.run("alembic upgrade head")
+    print(ctx.run("alembic upgrade head"))
 
 
 @task
-def check(ctx):
+def check(ctx: Context):
     """Проверка проекта"""
 
     check_res = {"connect_db": False}
@@ -79,68 +91,34 @@ def check(ctx):
 
 
 @task
-def loaddata(ctx, file_name: str):
+def loaddata(ctx: Context, files_pattern: str, dsn: str = None):
     """Прочитать из файла и записать в БД
 
     invoke loaddata users.json
     """
-
-    file = Path(file_name)
-    if not file.exists():
-        raise FileNotFoundError(file_name)
-
-    json_data = json.loads(file.read_text(encoding="utf-8"))
-
-    res = 0
-    for row in json_data["data"]:
-        try:
-            sql_query = "INSERT INTO {name} ({keys}) VALUES ({values});".format(
-                name=json_data["model"],
-                keys=", ".join(json_data["column_name"]),
-                values=", ".join(
-                    [f"'{v}'" if isinstance(v, str) else str(v) for v in row]
-                ),
-            )
-
-            res += sql_write(sql_query)
-        except psycopg2.errors.UniqueViolation as e:
-            print(e)
-
-    print("CREATE ROWS: ", res)
+    base_loaddata(files_pattern, dsn)
 
 
 @task
-def dumpdata(ctx, name_table: str):
+def dumpdata(ctx: Context, name_table: str, out_file: str = None):
     """Прочитать записи из БД
 
     invoke dumpdata users > users.json
     """
-
-    sql_query = f"SELECT * FROM {name_table}"
-    res = sql_read(sql_query)
-    json_data = json.dumps(
-        {
-            "model": f"{name_table}",
-            "column_name": list(res[0].keys()),
-            "data": [list(r.values()) for r in res],
-        },
-        ensure_ascii=False,
-        indent=2,
-    )
-    print(json_data)
+    base_dumpdata(name_table, out_file)
 
 
 @task
-def flushtable(ctx, name_table: str):
+def flushtable(ctx: Context, name_table: str):
     """Удалить все записи из таблицы
 
     invoke flushtable users
     """
-    print(sql_write(f"DELETE FROM {name_table}"))
+    print(sql_write(f"DELETE FROM {name_table};"))
 
 
 @task
-def speedurl(ctx, url: str):
+def speedurl(ctx: Context, url: str):
     """Замерить скорость выполнения URL запроса в миллисекундах
 
     invoke speedurl http://localhost:8000/users/
@@ -165,11 +143,18 @@ def speedurl(ctx, url: str):
     print(f"Average response time: {average_response_time:.2f} milliseconds")
 
 
+@task
+def pytest(ctx: Context):
+    """Запустить тесты через pytest"""
+    ctx.run("pytest")
+
+
 namespace_server = Collection()
 namespace_server.add_task(rundev)
 namespace_server.add_task(check)
 namespace_server.add_task(gensecretkey)
 namespace_server.add_task(clearredis)
+namespace_server.add_task(downloadpip)
 
 namespace_db = Collection()
 namespace_db.add_task(makemigrations)
@@ -180,6 +165,7 @@ namespace_db.add_task(flushtable)
 
 namespace_test = Collection()
 namespace_test.add_task(speedurl)
+namespace_test.add_task(pytest)
 
 namespace = Collection()
 namespace.add_collection(namespace_server, name="server")

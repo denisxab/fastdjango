@@ -1,0 +1,48 @@
+[
+    {
+        "model": "users",
+        "column_name": [
+            "id",
+            "username",
+            "email_user",
+            "snils",
+            "level"
+        ],
+        "data": [
+            [
+                2,
+                "2Petro",
+                "2Petro@google.com",
+                "1231121245",
+                1
+            ],
+            [
+                3,
+                "Иванов",
+                "3Gongo@google.com",
+                "453514",
+                3
+            ]
+        ]
+    },
+    {
+        "model": "person",
+        "column_name": [
+            "id",
+            "fio",
+            "user_id"
+        ],
+        "data": [
+            [
+                2,
+                "2Petro",
+                2
+            ],
+            [
+                3,
+                "3Gongo",
+                3
+            ]
+        ]
+    }
+]
