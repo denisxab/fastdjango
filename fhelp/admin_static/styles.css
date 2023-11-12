@@ -2,7 +2,7 @@ body {
     font-family: Arial, sans-serif;
     background-color: #333;
     color: #fff;
-    margin: 2em;
+    margin: 1.3em;
     padding: 0;
     display: flex;
     flex-direction: column;
@@ -20,6 +20,9 @@ a:hover {
 
 .body_admin {
     overflow: auto;
+    border: 1px solid #222;
+    padding: 0.8em;
+    border-radius: 1em;
 }
 
 table {
@@ -73,4 +76,46 @@ input[type='button'] {
 
 input[type='button']:hover {
     background: #222;
-}   
+}
+
+a {
+    font-size: 1.3em;
+}
+
+
+
+/* Стилизация списка ul */
+ul {
+    list-style: disc;
+    /* Убираем маркеры списка */
+    padding: 0;
+    /* Убираем внутренний отступ у списка */
+    margin: 0;
+    /* Убираем внешний отступ у списка */
+    padding-left: 2em;
+
+}
+
+/* Стилизация элементов списка li */
+li {
+    margin-bottom: 10px;
+    /* Добавляем отступ между элементами списка */
+}
+
+/* Стилизация ссылок внутри элементов списка */
+li a {
+    text-decoration: none;
+    /* Убираем подчеркивание у ссылок */
+    color: #d3d3d3;
+    /* Задаем цвет текста для ссылок */
+    font-weight: bold;
+    /* Делаем текст жирным */
+    font-family: Arial, sans-serif;
+    /* Задаем шрифт */
+}
+
+/* Стилизация ссылок при наведении */
+li a:hover {
+    color: #d3d3d383;
+    /* Изменяем цвет текста при наведении */
+}
