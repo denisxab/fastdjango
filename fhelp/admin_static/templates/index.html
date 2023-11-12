@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link href="{{ url_for('admin_static', path='/styles.css') }}" rel="stylesheet">
+    <script src="{{ url_for('admin_static', path='/main.js') }}"></script>
+</head>
+<script>
+    // Перейти на указанный url
+    function moveUrl(new_url) {
+        window.location.href = new_url
+    }
+    // Сделать HTTP GET
+    const fetchData = async (url) => (await fetch(url)).json();
+    // Сделать HTTP DELETE
+    const deleteData = async (url) =>
+        (await fetch(url, { method: "DELETE" })).json();
+    // Сделать HTTP PUT
+    const putData = async (url, data) =>
+        (
+            await fetch(url, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            })
+        ).json();
+</script>
+
+<body>
+    <div>
+        <h1>Админ панель FastAPI</h1>
+        <div class="base_admin_urls">
+            <h3 onclick="moveUrl('{{main_url}}')">
+                Главная страница
+            </h3>
+        </div>
+
+    </div>
+    <div class="body_admin">
+        {% include body_html %}
+    </div>
+</body>
+
+</html>

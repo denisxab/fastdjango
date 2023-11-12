@@ -18,7 +18,7 @@ from fhelp.database_async import async_get_session
 from fhelp.fcached import RamServerCached, RedisCached
 from fhelp.fjwt import get_current_user
 from fhelp.flogger import getLogger
-from fhelp.utlis import count_rows
+from fhelp.utlis import absolute_url, count_rows
 
 logger = getLogger()
 
@@ -247,18 +247,21 @@ class FViews:
 
             offset = page * _page_size
             count = await count_rows(session, self.model)
-            url_obj = request.url
-            url = f"{url_obj.scheme}://{url_obj.netloc}{url_obj.path}"
+            url = absolute_url(request, request.url.path)
 
             next_page = page + 1 if count > (page + 1) * _page_size else None
             previous_page = page - 1 if page - 1 > -1 else None
 
             res = {
                 "count": count,
-                "next": f"{url}?page={next_page}&page_size={_page_size}"
+                "next": f"{url}?page={next_page}"
+                if _page_size == self.page_size
+                else f"{url}?page={next_page}&page_size={_page_size}"
                 if next_page
                 else None,
-                "previous": f"{url}?page={previous_page}&page_size={_page_size}"
+                "previous": f"{url}?page={previous_page}"
+                if _page_size == self.page_size
+                else f"{url}?page={previous_page}&page_size={_page_size}"
                 if previous_page is not None
                 else None,
                 "results": await view_list(

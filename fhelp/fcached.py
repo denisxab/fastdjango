@@ -116,6 +116,12 @@ class RedisCached(BaseCached):
         if res:
             return res
 
+    async def get_all_keys(self) -> list[str]:
+        """Получить все ключи в Redis"""
+        redis: Redis = aioredis.from_url(**self._redisConfConnect)
+        all_keys = await redis.keys("*")
+        return [key_b.decode() for key_b in all_keys]
+
     async def set(self, key: str, value: str | int | float | bool):
         redis: Redis = aioredis.from_url(**self._redisConfConnect)
         await redis.set(key, value)
@@ -130,3 +136,9 @@ class RedisCached(BaseCached):
         keys_to_delete = await redis.keys(f"{startswith_key}*")
         if keys_to_delete:
             await redis.delete(*keys_to_delete)
+
+    async def get_ttl(self, key: str) -> int:
+        """Получить TTL (время жизни) ключа в Redis"""
+        redis: Redis = aioredis.from_url(**self._redisConfConnect)
+        ttl = await redis.ttl(key)
+        return ttl

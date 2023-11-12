@@ -1,0 +1,37 @@
+<script>
+
+    const _deleteData = async (url) => {
+        await deleteData(url);
+        moveUrl(window.location.href);
+    }
+</script>
+<table>
+    <tr>
+        <th>Ключ</th>
+        <th>Значение</th>
+        <th>TTL секунд</th>
+        <th>Действие</th>
+    </tr>
+    {% for row in data %}
+    <tr>
+        <td>
+            <span class="key">
+                {{row.key}}
+            </span>
+        </td>
+        <td>
+            <span class="value">
+                {{row.value}}
+            </span>
+        </td>
+        <td>
+            <span class="ttl_key">
+                {{row.ttl}}
+            </span>
+        </td>
+        <td>
+            <input type="button" value="Удалить" onclick="_deleteData('{{row.delete_key_url}}')">
+        </td>
+    </tr>
+    {% endfor %}
+</table>

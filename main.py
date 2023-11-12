@@ -17,7 +17,6 @@ from fhelp.fadmin import add_model_in_admin, router_admin
 from fhelp.fjwt import add_handler_login_jwt, router_jwt
 from fhelp.flogger import basicConfigLogger
 
-
 app = FastAPI(title="FastDjango APp")
 
 # Добавляем роутер к приложению
@@ -49,7 +48,7 @@ app.add_middleware(
 )
 
 # Подключить модели в админ панель:
-add_model_in_admin(model=[User, Person])
+add_model_in_admin(model=[User, Person], app=app)
 app.include_router(router_admin)
 
 

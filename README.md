@@ -70,7 +70,7 @@ class UsersRouter(FViews, APIRouter):
     page_size = 2
     # Сортировка списка
     order_by = ("id",)
-    # Использовать кеширование GET запросов, при POST,PUT,DELETE кеш будет удалён
+    # Использовать кеширование GET запросов через redis. При POST,PUT,DELETE кеш будет удалён
     cached = "redis"
 
 
@@ -105,7 +105,7 @@ add_model_in_admin(model=Person)
 app.include_router(router_admin)
 ```
 
-Теперь можно пользоваться API админ панели:
+Теперь можно пользоваться API админ панели `localhost:8000/admin/`:
 
 -   ![](./doc/Screenshot_20231106_124724.png)
 -   ![](./doc/Screenshot_20231106_124814.png)
@@ -234,7 +234,7 @@ class TestMainApp(BaseFastApiTest):
     fixtures = [BASE_DIR / "fixtures" / "test_base.json"]
 
     def setup_method(self):
-        # Можете добавить логику при зпуски тестовой функции
+        # Можете добавить логику при запуске тестовой функции
         super().setup_method()
 
     # Пример тестовой функции
@@ -265,8 +265,6 @@ class TestMainApp(BaseFastApiTest):
         assert response2.status_code == 200
         assert response.json() == excepted_response
 ```
-
-
 
 # Оформление проекта
 

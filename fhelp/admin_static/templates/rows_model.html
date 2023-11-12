@@ -1,0 +1,16 @@
+<table>
+    <tr>
+        {% for cn in column_name %}
+        <th>{{cn}}</th>
+        {% endfor %}
+    </tr>
+    {% for row in rows %}
+    <tr onclick="moveUrl('{{rows_url[loop.index0]}}')">
+        {% for key, value in row.items() %}
+        <td>
+            {{value}}
+        </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>

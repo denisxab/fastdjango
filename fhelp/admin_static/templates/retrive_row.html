@@ -1,0 +1,89 @@
+<style>
+    #table-container {
+        border: 1px solid #444;
+        border-radius: 2vw;
+        overflow: hidden;
+        margin: 5vw 0;
+        padding: 5vw;
+        background-color: #333;
+        box-shadow: 0 2vw 4vw rgba(0, 0, 0, 0.1);
+    }
+
+    #data-row {
+        margin-bottom: 3vw;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .key {
+        color: #ffffff;
+        margin-right: 1vw;
+        font-weight: bold;
+        font-size: 1.5vw;
+    }
+
+    input {
+        padding: 1vw;
+        margin: 0.3vw;
+        border: 0.1vw solid #555;
+        border-radius: 0.4vw;
+        width: 90%;
+        background-color: #444;
+        color: #fff;
+    }
+
+    button {
+        background-color: #2ecc71;
+        color: #ffffff;
+        padding: 1vw 2vw;
+        border: none;
+        border-radius: 0.4vw;
+        cursor: pointer;
+        margin-right: 1vw;
+        font-size: 1vw;
+    }
+
+    button:hover {
+        background-color: #27ae60;
+    }
+
+    #update_row {
+        background: #3498db;
+    }
+
+    #delete_row {
+        background: rgb(221, 42, 42);
+    }
+</style>
+
+
+<script>
+    const _deleteData = async (url) => {
+        await deleteData(url)
+        moveUrl('{{url_back}}')
+    }
+    const _putData = async (url) => {
+        data = {}
+        for (x of document.getElementById('data-row').children
+        ) {
+            data[x.querySelector('span').textContent] = x.querySelector('input[type="text"]').value
+        }
+        await putData(url, data)
+        moveUrl('{{url_back}}')
+    }
+
+</script>
+<div id="table-container">
+    <div id="data-row">
+        {% for key, value in column.items() %}
+        <div>
+            <span class="key">{{ key }}</span>
+            <input type="text" value="{{value}}">
+        </div>
+        {% endfor %}
+    </div>
+    <button onclick="moveUrl('{{url_back}}')">Назад</button>
+    <button id="update_row" onclick="_putData('{{url_delete}}',this)">Обновить</button>
+    <button id="delete_row" onclick="_deleteData('{{url_delete}}')">Удалить</button>
+</div>
