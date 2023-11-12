@@ -16,7 +16,7 @@ def basicConfigLogger(path_log_dir: Path, level=logging.DEBUG):
         Path(path_log_dir, "fhelp.log"),
         # 100 килобайт
         maxBytes=100 * 1024,
-        # Храним одну копию прошлйо версии лога, до отчистки
+        # Храним одну копию прошлой версии лога, до отчистки
         backupCount=1,
     )
     file_handler.setLevel(
@@ -36,5 +36,5 @@ def basicConfigLogger(path_log_dir: Path, level=logging.DEBUG):
 
 
 def getLogger():
-    """получить логгер"""
+    """Получить логгер"""
     return logging.getLogger("fhelp")

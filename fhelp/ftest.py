@@ -128,7 +128,7 @@ def refresh_tables():
 
 def run_test(reuse_db: bool = False):
     """
-    Логика запска теста FastApi проекта
+    Логика запуска теста FastApi проекта
 
     reuse_db: Если True то не будет удалять базу пред запуском
     """

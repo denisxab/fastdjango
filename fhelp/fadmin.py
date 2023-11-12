@@ -1,5 +1,6 @@
 """Реализация API простой админ панели"""
 from pathlib import Path
+
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -34,7 +35,7 @@ def add_model_in_admin(model: DeclarativeMeta | list[DeclarativeMeta], app: Fast
             ADMIN_SETTINGS[m.__name__] = m
     else:
         ADMIN_SETTINGS[model.__name__] = model
-    # МОнируем статические файлй для фронта админ панели
+    # Минируем статические файлы для фронта админ панели
     app.mount(
         "/static",
         StaticFiles(directory=str(Path(__file__).parent / "admin_static")),
@@ -199,7 +200,7 @@ async def row_model_from_pk_get(
         "index.html",
         {
             "request": request,
-            "body_html": "retrive_row.html",
+            "body_html": "retrieve_row.html",
             "column": {k: getattr(row, k) for k in names},
             "url_back": absolute_url(
                 request, router_admin.url_path_for(rows_model.__name__, model=model)

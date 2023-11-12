@@ -1,8 +1,10 @@
 """
 Утилиты для асинхронной работы с БД
 """
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 from settings import DATABASE_URL_ASYNC, DEBUG
 
@@ -29,3 +31,11 @@ async def async_get_session() -> AsyncSession:
     """
     async with AsyncSessionLocal() as session:
         yield session
+
+
+async def count_rows(session: AsyncSession, model: DeclarativeMeta):
+    """Получить количество записей в таблице"""
+
+    result = await session.execute(func.count(model.id))
+    count = result.scalar()
+    return count

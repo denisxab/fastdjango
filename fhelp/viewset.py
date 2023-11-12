@@ -14,11 +14,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 from fhelp.database import get_session
-from fhelp.database_async import async_get_session
+from fhelp.database_async import async_get_session, count_rows
 from fhelp.fcached import RamServerCached, RedisCached
 from fhelp.fjwt import get_current_user
 from fhelp.flogger import getLogger
-from fhelp.utlis import absolute_url, count_rows
+from fhelp.utlis import absolute_url
 
 logger = getLogger()
 

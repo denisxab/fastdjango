@@ -1,10 +1,13 @@
 """
 Утилиты для синхронной работы с БД
 """
+from typing import Any, Callable
 
+from psycopg2 import connect
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from fhelp.utlis import dictfetchall
 from settings import DATABASE_URL, DEBUG
 
 # Инициализация подключения к базе данных
@@ -27,3 +30,29 @@ def get_session() -> Session:
     """
     with SessionLocal() as session:
         yield session
+
+
+def connect_db(fun: Callable, dsn=None) -> Any:
+    with connect(dsn=dsn if dsn else DATABASE_URL) as conn, conn.cursor() as cur:
+        return fun(cur)
+
+
+def sql_read(sql_query: str, dsn=None):
+    """Выполнить RAW SQL чтение"""
+
+    def _inner(cur):
+        cur.execute(sql_query)
+        return dictfetchall(cur)
+
+    return connect_db(_inner, dsn)
+
+
+def sql_write(sql_query: str, dsn=None):
+    """Выполнить RAW SQL запись"""
+
+    def _inner(cur):
+        cur.execute(sql_query)
+        cur.connection.commit()
+        return cur.rowcount
+
+    return connect_db(_inner, dsn)
