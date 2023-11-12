@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +14,7 @@ from api.schema import UserSchema
 from fhelp.database import get_session
 from fhelp.database_async import async_get_session
 from fhelp.fadmin import add_model_in_admin, router_admin
+from fhelp.fexception_handler import f_404_handler
 from fhelp.fjwt import add_handler_login_jwt, router_jwt
 from fhelp.flogger import basicConfigLogger
 
@@ -71,3 +72,9 @@ def test_main(
     query = select(User)
     rows = session.execute(query)
     return rows.scalars().all()
+
+
+@app.exception_handler(404)
+async def custom_404_handler(request, exc: HTTPException):
+    """Обработка 404 HTTP исключения"""
+    return await f_404_handler(request, exc, app)
