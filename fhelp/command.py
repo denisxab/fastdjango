@@ -10,13 +10,15 @@ from invoke import Collection, Context, task
 from fhelp.database import sql_write
 from fhelp.ffiextures import base_dumpdata, base_loaddata
 from main import app
-from settings import APP_PORT, DATABASE_URL, REDIS_URL
+from settings import SettingsFastApi
+
+settings = SettingsFastApi()
 
 
 @task
 def rundev(ctx: Context):
     """Запустить DEV сервер"""
-    ctx.run(f"uvicorn main:app --reload --host 0.0.0.0 --port {APP_PORT}")
+    ctx.run(f"uvicorn main:app --reload --host 0.0.0.0 --port {settings.APP_PORT}")
 
 
 @task
@@ -27,7 +29,7 @@ def runprod(ctx: Context):
     workers = multiprocessing.cpu_count() * 2 + 1
 
     ctx.run(
-        f"uvicorn main:app --host 0.0.0.0 --port {APP_PORT} --workers {workers} --limit-max-requests 1000"
+        f"uvicorn main:app --host 0.0.0.0 --port {settings.APP_PORT} --workers {workers} --limit-max-requests 1000"
     )
 
 
@@ -49,7 +51,7 @@ def clearredis(ctx: Context):
     from redis import asyncio as aioredis
 
     async def _inner():
-        redis: Redis = aioredis.from_url(REDIS_URL)
+        redis: Redis = aioredis.from_url(settings.REDIS_URL)
         keys_to_delete = await redis.keys("*")
         if keys_to_delete:
             await redis.delete(*keys_to_delete)
@@ -89,7 +91,7 @@ def check(ctx: Context):
     check_res = {"connect_db": False}
     # Проверить подключение к БД
     try:
-        connection = psycopg2.connect(dsn=DATABASE_URL)
+        connection = psycopg2.connect(dsn=settings.DATABASE_URL)
         connection.close()
         check_res["connect_db"] = True
     except psycopg2.Error as e:
@@ -176,6 +178,7 @@ def listurl(ctx: Context):
 
 namespace_server = Collection()
 namespace_server.add_task(rundev)
+namespace_server.add_task(runprod)
 namespace_server.add_task(check)
 namespace_server.add_task(gensecretkey)
 namespace_server.add_task(clearredis)

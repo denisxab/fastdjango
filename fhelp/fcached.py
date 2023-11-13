@@ -3,7 +3,9 @@ from typing import Any
 
 from redis import asyncio as aioredis
 
-from settings import REDIS_URL
+from settings import SettingsFastApi
+
+settings = SettingsFastApi()
 
 
 class BaseCached:
@@ -65,7 +67,7 @@ class RamServerCached(BaseCached):
 class RedisCached(BaseCached):
     DEFAULT_EXPIRE = 60 * 3
 
-    def __init__(self, redis_url: str = REDIS_URL) -> None:
+    def __init__(self, redis_url: str = settings.REDIS_URL) -> None:
         self._redisConfConnect = dict(url=redis_url)
 
     async def get_cached(self):

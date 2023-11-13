@@ -8,10 +8,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from fhelp.utlis import dictfetchall
-from settings import DATABASE_URL, DEBUG
+from settings import SettingsFastApi
+
+settings = SettingsFastApi()
 
 # Инициализация подключения к базе данных
-engine = create_engine(DATABASE_URL, echo=True if DEBUG else False)
+engine = create_engine(settings.DATABASE_URL, echo=True if settings.DEBUG else False)
 # Создание сессии
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -33,7 +35,9 @@ def get_session() -> Session:
 
 
 def connect_db(fun: Callable, dsn=None) -> Any:
-    with connect(dsn=dsn if dsn else DATABASE_URL) as conn, conn.cursor() as cur:
+    with connect(
+        dsn=dsn if dsn else settings.DATABASE_URL
+    ) as conn, conn.cursor() as cur:
         return fun(cur)
 
 

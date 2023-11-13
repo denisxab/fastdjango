@@ -6,10 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 
-from settings import DATABASE_URL_ASYNC, DEBUG
+from settings import SettingsFastApi
+
+settings = SettingsFastApi()
 
 # Инициализация подключения к базе данных
-async_engine = create_async_engine(DATABASE_URL_ASYNC, echo=True if DEBUG else False)
+async_engine = create_async_engine(
+    settings.DATABASE_URL_ASYNC, echo=True if settings.DEBUG else False
+)
 # Создание сессии
 AsyncSessionLocal = sessionmaker(
     bind=async_engine, class_=AsyncSession, expire_on_commit=False

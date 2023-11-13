@@ -15,9 +15,7 @@ RUN pip install poetry && \
     poetry install --no-dev
 
 # Make port 8000 available to the world outside this container
-EXPOSE 8000
-
+# EXPOSE 8000
 # Run app.py when the container launches
-CMD tail -f /dev/null
-
+# CMD tail -f /dev/null
 # ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

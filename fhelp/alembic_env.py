@@ -10,9 +10,11 @@ from alembic import context
 # Эти две строки подключаются к вашей базе данных
 from main import app  # noqa F401 # Импортируем FastAPI app
 from models import Base  # Предполагаем, что у вас есть модели
-from settings import DATABASE_URL as DATABASE_URL_DEFAULT
+from settings import SettingsFastApi
 
-DATABASE_URL = os.environ.get("DATABASE_URL", DATABASE_URL_DEFAULT)
+settings = SettingsFastApi()
+
+DATABASE_URL = os.environ.get("DATABASE_URL", settings.DATABASE_URL)
 
 # Инициализация базы данных
 target_metadata = Base.metadata

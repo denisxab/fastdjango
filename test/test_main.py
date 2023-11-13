@@ -1,10 +1,13 @@
 from fastapi.testclient import TestClient
+
 from fhelp.ftest import BaseFastApiTest
-from settings import BASE_DIR
+from settings import SettingsFastApi
+
+settings = SettingsFastApi()
 
 
 class TestMainApp(BaseFastApiTest):
-    fixtures = [BASE_DIR / "fixtures" / "test_base.json"]
+    fixtures = [settings.BASE_DIR / "fixtures" / "test_base.json"]
 
     def setup_method(self):
         super().setup_method()

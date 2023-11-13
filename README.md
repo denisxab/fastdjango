@@ -226,12 +226,13 @@ from fhelp.base_conftest import setup_before_tests  # noqa F401
 ```python
 from fastapi.testclient import TestClient
 from fhelp.ftest import BaseFastApiTest
-from settings import BASE_DIR
+from settings import SettingsFastApi
 
+settings = SettingsFastApi()
 
 class TestMainApp(BaseFastApiTest):
     # Список фикстур которые нужно устанавливать при каждой функции теста
-    fixtures = [BASE_DIR / "fixtures" / "test_base.json"]
+    fixtures = [settings.BASE_DIR / "fixtures" / "test_base.json"]
 
     def setup_method(self):
         # Можете добавить логику при запуске тестовой функции

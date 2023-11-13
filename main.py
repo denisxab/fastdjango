@@ -20,7 +20,7 @@ from fhelp.fjwt import add_handler_login_jwt, router_jwt
 from fhelp.flogger import basicConfigLogger
 from fhelp.fmiddleware import base_middleware_process_time_header
 
-app = FastAPI(title="FastDjango APp", default_response_class=ORJSONResponse)
+app = FastAPI(title="FastDjango App", default_response_class=ORJSONResponse)
 
 # Добавляем роутер к приложению
 app.include_router(router_persons)

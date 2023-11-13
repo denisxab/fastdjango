@@ -14,13 +14,25 @@ from fhelp.database import get_session
 from fhelp.database_async import async_get_session
 from fhelp.ffiextures import base_loaddata
 from main import app
-from settings import TEST_DATABASE_NAME, TEST_DATABASE_URL, TEST_DATABASE_URL_ASYNC
+from settings import SettingsFastApi
 
-test_engine = create_engine(TEST_DATABASE_URL)
+settings = SettingsFastApi()
+
+# Замена DSN бд на тестовую
+settings.DATABASE_NAME = "test_db"
+settings.DATABASE_URL = (
+    f"postgresql://{settings.DATABASE_CONF}/{settings.DATABASE_NAME}"
+)
+
+settings.DATABASE_URL_ASYNC = (
+    f"postgresql+asyncpg://{settings.DATABASE_CONF}/{settings.DATABASE_NAME}"
+)
+
+test_engine = create_engine(settings.DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 # Инициализация подключения к базе данных
-test_async_engine = create_async_engine(TEST_DATABASE_URL_ASYNC)
+test_async_engine = create_async_engine(settings.DATABASE_URL_ASYNC)
 # Создание сессии
 TestingAsyncSessionLocal = sessionmaker(
     bind=test_async_engine, class_=AsyncSession, expire_on_commit=False
@@ -51,8 +63,8 @@ def migrate_test_db():
         create_db_query = text(
             f"""DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = '{TEST_DATABASE_NAME}') THEN
-        CREATE DATABASE {TEST_DATABASE_NAME};
+    IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = '{settings.DATABASE_NAME}') THEN
+        CREATE DATABASE {settings.DATABASE_NAME};
     END IF;
 END $$;
 """
@@ -60,7 +72,7 @@ END $$;
         connection.execute(create_db_query)
         connection.commit()
 
-    os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+    os.environ["DATABASE_URL"] = settings.DATABASE_URL
     result = subprocess.run(
         "invoke db.migrate",
         shell=True,
@@ -78,7 +90,7 @@ def load_fixtures(paths: list[Path]):
     """
 
     for p in paths:
-        result = base_loaddata(str(p), dsn=TEST_DATABASE_URL)
+        result = base_loaddata(str(p), dsn=settings.DATABASE_URL)
         print(result)
 
 
@@ -92,13 +104,13 @@ def refresh_db():
         connection.connection.connection.set_isolation_level(0)
 
         # Выполните операцию DROP DATABASE
-        drop_db_query = text(f"DROP DATABASE IF EXISTS {TEST_DATABASE_NAME};")
+        drop_db_query = text(f"DROP DATABASE IF EXISTS {settings.DATABASE_NAME};")
         connection.execute(drop_db_query)
         connection.commit()
 
     # Опционально: создайте базу данных заново после удаления (если это нужно)
     with real_engine.connect() as connection:
-        create_db_query = text(f"CREATE DATABASE {TEST_DATABASE_NAME};")
+        create_db_query = text(f"CREATE DATABASE {settings.DATABASE_NAME};")
         connection.execute(create_db_query)
         connection.commit()
 

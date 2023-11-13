@@ -19,6 +19,7 @@ services:
         depends_on:
             - db
             - redis
+        command: "tail -f /dev/null"
 
     redis:
         image: redis
