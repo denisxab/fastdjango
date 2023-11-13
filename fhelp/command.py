@@ -7,8 +7,8 @@ from pprint import pprint
 import psycopg2
 from invoke import Collection, Context, task
 
+from fhelp.database import sql_write
 from fhelp.ffiextures import base_dumpdata, base_loaddata
-from fhelp.utlis import sql_write
 from main import app
 from settings import APP_PORT, DATABASE_URL, REDIS_URL
 
@@ -26,7 +26,9 @@ def runprod(ctx: Context):
 
     workers = multiprocessing.cpu_count() * 2 + 1
 
-    ctx.run(f"uvicorn main:app --host 0.0.0.0 --port {APP_PORT} --workers {workers} --limit-max-requests 1000")
+    ctx.run(
+        f"uvicorn main:app --host 0.0.0.0 --port {APP_PORT} --workers {workers} --limit-max-requests 1000"
+    )
 
 
 @task

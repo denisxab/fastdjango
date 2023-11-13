@@ -252,18 +252,26 @@ class FViews:
             next_page = page + 1 if count > (page + 1) * _page_size else None
             previous_page = page - 1 if page - 1 > -1 else None
 
+            url_next_page = f"{url}?page={next_page}" if next_page else None
+            url_previous_page = (
+                f"{url}?page={previous_page}" if previous_page is not None else None
+            )
+            if _page_size != self.page_size:
+                url_next_page = (
+                    url_next_page + f"&page_size={_page_size}"
+                    if url_next_page
+                    else None
+                )
+                url_previous_page = (
+                    url_previous_page + f"&page_size={_page_size}"
+                    if url_previous_page
+                    else None
+                )
+
             res = {
                 "count": count,
-                "next": f"{url}?page={next_page}"
-                if _page_size == self.page_size
-                else f"{url}?page={next_page}&page_size={_page_size}"
-                if next_page
-                else None,
-                "previous": f"{url}?page={previous_page}"
-                if _page_size == self.page_size
-                else f"{url}?page={previous_page}&page_size={_page_size}"
-                if previous_page is not None
-                else None,
+                "next": url_next_page,
+                "previous": url_previous_page,
                 "results": await view_list(
                     session,
                     self.model,

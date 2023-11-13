@@ -8,7 +8,7 @@ from typing import List, Union
 import psycopg2
 from pydantic import BaseModel, RootModel
 
-from fhelp.utlis import sql_read, sql_write
+from fhelp.database import sql_read, sql_write
 
 
 class ItemFixturesSchema(BaseModel):

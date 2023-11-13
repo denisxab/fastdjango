@@ -2,8 +2,9 @@
 
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import ORJSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -18,7 +19,7 @@ from fhelp.fexception_handler import f_404_handler
 from fhelp.fjwt import add_handler_login_jwt, router_jwt
 from fhelp.flogger import basicConfigLogger
 
-app = FastAPI(title="FastDjango APp")
+app = FastAPI(title="FastDjango APp", default_response_class=ORJSONResponse)
 
 # Добавляем роутер к приложению
 app.include_router(router_persons)
@@ -75,6 +76,12 @@ def test_main(
 
 
 @app.exception_handler(404)
-async def custom_404_handler(request, exc: HTTPException):
+async def custom_404_handler(request: Request, exc: HTTPException):
     """Обработка 404 HTTP исключения"""
     return await f_404_handler(request, exc, app)
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    """Замерять время волнения запроса"""
+    return await add_process_time_header(request, call_next)

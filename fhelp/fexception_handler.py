@@ -1,9 +1,8 @@
-import fastapi
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 
-async def f_404_handler(request, exc: HTTPException, app: fastapi):
+async def f_404_handler(request: Request, exc: HTTPException, app: FastAPI):
     """Обработка 404 HTTP исключения"""
     available_urls = list(set(route.path for route in app.routes))
     available_urls.sort()
