@@ -14,3 +14,15 @@
     </tr>
     {% endfor %}
 </table>
+
+<div class="paginator">
+    {% if total_pages > 1 %}
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == current_page %}
+                <div class="page-item active">{{ p }}</div>
+            {% else %}
+                <div class="page-item"><a href="{{ url_page }}?page={{ p }}">{{ p }}</a></div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</div>

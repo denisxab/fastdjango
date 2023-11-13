@@ -107,7 +107,7 @@ def check(ctx: Context):
 def loaddata(ctx: Context, files_pattern: str):
     """Прочитать из файла и записать в БД
 
-    invoke loaddata users.json
+    invoke db.loaddata users.json
     """
     base_loaddata(files_pattern)
 
@@ -116,7 +116,7 @@ def loaddata(ctx: Context, files_pattern: str):
 def dumpdata(ctx: Context, name_table: str, out_file: str = None):
     """Прочитать записи из БД
 
-    invoke dumpdata users -o='users.json'
+    invoke db.dumpdata users -o='users.json'
     """
     base_dumpdata(name_table, out_file)
 
@@ -125,7 +125,7 @@ def dumpdata(ctx: Context, name_table: str, out_file: str = None):
 def flushtable(ctx: Context, name_table: str):
     """Удалить все записи из таблицы
 
-    invoke flushtable users
+    invoke db.flushtable users
     """
     print(sql_write(f"DELETE FROM {name_table};"))
 

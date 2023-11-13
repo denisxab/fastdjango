@@ -119,3 +119,27 @@ li a:hover {
     color: #d3d3d383;
     /* Изменяем цвет текста при наведении */
 }
+
+.paginator {
+    display: flex;
+    flex-direction: row;
+    list-style: none;
+    flex-wrap: wrap;
+    padding: 0;
+    margin: 0.6em;
+}
+
+.page-item {
+    margin-left: 1em;
+    cursor: pointer;
+}
+
+.page-item.active {
+    color: rgb(169, 196, 255);
+    font-weight: bold;
+    font-size: 1.3em;
+}
+
+.page-item:hover {
+    text-decoration: underline;
+}

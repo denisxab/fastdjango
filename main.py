@@ -18,6 +18,7 @@ from fhelp.fadmin import add_model_in_admin, router_admin
 from fhelp.fexception_handler import f_404_handler
 from fhelp.fjwt import add_handler_login_jwt, router_jwt
 from fhelp.flogger import basicConfigLogger
+from fhelp.fmiddleware import base_middleware_process_time_header
 
 app = FastAPI(title="FastDjango APp", default_response_class=ORJSONResponse)
 
@@ -84,4 +85,4 @@ async def custom_404_handler(request: Request, exc: HTTPException):
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     """Замерять время волнения запроса"""
-    return await add_process_time_header(request, call_next)
+    return await base_middleware_process_time_header(request, call_next)

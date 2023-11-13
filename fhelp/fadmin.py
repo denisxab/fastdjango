@@ -1,7 +1,8 @@
 """Реализация API простой админ панели"""
+from math import ceil
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -10,7 +11,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 from fhelp.database import get_session
-from fhelp.database_async import async_get_session
+from fhelp.database_async import async_get_session, count_rows
 from fhelp.fcached import RedisCached
 from fhelp.utlis import absolute_url, get_pk_name_mode
 from fhelp.viewset import view_delete, view_list, view_retrieve, view_update
@@ -137,16 +138,30 @@ async def admin_models(
 
 @router_admin.get("/rows/{model}")
 async def rows_model(
-    request: Request, model: str, session: AsyncSession = Depends(async_get_session)
+    request: Request,
+    model: str,
+    page: int = Query(1, alias="page", ge=1),
+    session: AsyncSession = Depends(async_get_session),
 ):
+    """Список записей у указанной модели"""
+    PAGE_SIZE = 30
+
     model_obj = ADMIN_SETTINGS.get(model)
 
     if model_obj is None:
         raise HTTPException(status_code=404, detail="Model not found")
 
+    count_row = await count_rows(session, model_obj)
+    total_pages = ceil(count_row / PAGE_SIZE)
+
+    if page > total_pages:
+        page = total_pages
+
     rows = await view_list(
         session,
         model_obj,
+        offset=(page - 1) * PAGE_SIZE,
+        limit=PAGE_SIZE,
         order_by=(model_obj.__table__.primary_key.columns.values()[0].name,),
     )
 
@@ -179,6 +194,14 @@ async def rows_model(
             "rows": result,
             "rows_url": result_url,
             "column_name": names,
+            # Для пагинации
+            "total_pages": total_pages,
+            # Url для получения страницы
+            "url_page": absolute_url(
+                request, router_admin.url_path_for(rows_model.__name__, model=model)
+            ),
+            # Текущая страница
+            "current_page": page,
             **base_admin_html_prams(request),
         },
     )
