@@ -20,6 +20,16 @@ def rundev(ctx: Context):
 
 
 @task
+def runprod(ctx: Context):
+    """Запустить PROD сервер"""
+    import multiprocessing
+
+    workers = multiprocessing.cpu_count() * 2 + 1
+
+    ctx.run(f"uvicorn main:app --host 0.0.0.0 --port {APP_PORT} --workers {workers} --limit-max-requests 1000")
+
+
+@task
 def gensecretkey(ctx: Context):
     """Создать SECRET_KEY"""
     import secrets
